@@ -49,67 +49,44 @@ export const ExpenseDashboard: React.FC<Props> = ({ expenses }) => {
     <div className="space-y-6">
       {/* Total Card - Visual Upgrade */}
       <div
-        className={`relative overflow-hidden rounded-[2.5rem] p-8 shadow-2xl group transition-colors ${
+        className={`rounded-[2.5rem] p-8 border transition-colors ${
           theme === "dark"
-            ? "border border-slate-700/50 bg-slate-900/60"
-            : "border border-slate-200 bg-white"
-        } backdrop-blur-xl`}
+            ? "border-slate-800 bg-slate-900/50"
+            : "border-slate-200 bg-white"
+        }`}
       >
-        {/* Animated Background Blob */}
-        <div
-          className={`absolute -top-20 -right-20 h-64 w-64 rounded-full blur-[80px] transition-all duration-700 ${
-            theme === "dark"
-              ? "bg-indigo-500/20 group-hover:bg-indigo-500/30"
-              : "bg-indigo-500/10 group-hover:bg-indigo-500/20"
-          }`}
-        />
-
-        <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-40 transition-opacity duration-500 group-hover:scale-110 group-hover:rotate-12">
-          <Zap size={120} className="text-indigo-400" />
-        </div>
-
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-6">
-            <h1
-              className={`flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] ${
-                theme === "dark" ? "text-slate-400" : "text-slate-600"
-              }`}
-            >
-              <div className="p-1.5 bg-indigo-500/20 rounded-lg">
-                <Wallet size={14} className="text-indigo-400" />
-              </div>
-              Total Ekosistem
-            </h1>
-            <span className="flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-[10px] font-black text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
-              <div className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-              {expenses.length} OPS
-            </span>
-          </div>
-
-          <div
-            className={`text-5xl font-black tracking-tighter text-transparent bg-clip-text drop-shadow-sm ${
-              theme === "dark"
-                ? "bg-gradient-to-br from-white via-slate-200 to-slate-500"
-                : "bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500"
-            }`}
-          >
-            {formatRupiah(stats.total)}
-          </div>
-
-          <div
-            className={`mt-6 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest ${
+        {/* Header: Label & Counter */}
+        <div className="flex items-center justify-between mb-6">
+          <h1
+            className={`text-xs font-bold uppercase tracking-[0.2em] ${
               theme === "dark" ? "text-slate-500" : "text-slate-400"
             }`}
           >
-            <TrendingUp size={12} />
-            <span>Financial Overview</span>
-            <span
-              className={theme === "dark" ? "text-slate-700" : "text-slate-300"}
-            >
-              •
-            </span>
-            <span>Raboros Intel</span>
-          </div>
+            Total Ekosistem
+          </h1>
+          <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/5 px-3 py-1 rounded-full border border-indigo-500/10">
+            {expenses.length} OPS
+          </span>
+        </div>
+
+        {/* Main Value */}
+        <div
+          className={`text-5xl font-black tracking-tighter text-transparent bg-clip-text ${
+            theme === "dark"
+              ? "bg-gradient-to-br from-white via-slate-200 to-slate-600"
+              : "bg-gradient-to-br from-slate-900 via-slate-700 to-slate-400"
+          }`}
+        >
+          {formatRupiah(stats.total)}
+        </div>
+
+        {/* Footer Text */}
+        <div
+          className={`mt-6 text-[10px] font-semibold uppercase tracking-widest ${
+            theme === "dark" ? "text-slate-700" : "text-slate-400"
+          }`}
+        >
+          Financial Overview • Raboros Intel
         </div>
       </div>
 

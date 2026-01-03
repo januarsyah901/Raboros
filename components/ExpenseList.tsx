@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { ChevronDown, ChevronUp, Calendar, Hash } from "lucide-react";
+import { ChevronDown, ChevronUp, Calendar, Hash, Trash2 } from "lucide-react";
 import { ExpenseItem, CategoryType } from "../types";
 import { CATEGORIES } from "../constants";
 import { useTheme } from "../contexts/ThemeContext";
 
 interface Props {
   expenses: ExpenseItem[];
+  onDelete: (id: string) => void;
 }
 
 // Formatter statis agar tidak dire-create setiap render
@@ -16,7 +17,7 @@ const formatter = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 0,
 });
 
-export const ExpenseList: React.FC<Props> = ({ expenses }) => {
+export const ExpenseList: React.FC<Props> = ({ expenses, onDelete }) => {
   const { theme } = useTheme();
   const [expandedCat, setExpandedCat] = useState<CategoryType | null>(null);
 
@@ -89,7 +90,7 @@ export const ExpenseList: React.FC<Props> = ({ expenses }) => {
                   p-3.5 rounded-2xl border transition-all duration-300
                   ${
                     isExpanded
-                      ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-300"
+                      ? "bg-dark-500/20 border-indigo-500/30 text-indigo-300"
                       : theme === "dark"
                       ? "bg-slate-800/50 border-slate-700/50 text-slate-400 group-hover:bg-slate-800"
                       : "bg-slate-100 border-slate-200 text-slate-600 group-hover:bg-slate-200"
@@ -244,7 +245,7 @@ export const ExpenseList: React.FC<Props> = ({ expenses }) => {
                       </div>
 
                       {/* Right: Price */}
-                      <div className="text-right">
+                      <div className="text-right flex items-center gap-3">
                         <span
                           className={`text-sm font-bold font-mono tracking-tight transition-colors ${
                             theme === "dark"
@@ -254,6 +255,22 @@ export const ExpenseList: React.FC<Props> = ({ expenses }) => {
                         >
                           {formatter.format(item.price)}
                         </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Hapus "${item.item}"?`)) {
+                              onDelete(item.id);
+                            }
+                          }}
+                          className={`opacity-0 group-hover/item:opacity-100 p-2 rounded-lg transition-all ${
+                            theme === "dark"
+                              ? "hover:bg-rose-500/10 text-slate-500 hover:text-rose-400"
+                              : "hover:bg-rose-50 text-slate-400 hover:text-rose-600"
+                          }`}
+                          title="Hapus"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   ))}

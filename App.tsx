@@ -39,6 +39,35 @@ const App: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory, isChatMode]);
 
+  // Handle paste event for images
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (isChatMode || isProcessing) return;
+      
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          e.preventDefault();
+          const blob = items[i].getAsFile();
+          if (!blob) continue;
+
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const base64 = (reader.result as string).split(",")[1];
+            handleProcess({ data: base64, mimeType: blob.type });
+          };
+          reader.readAsDataURL(blob);
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [isChatMode, isProcessing]);
+
   const fetchExpenses = async () => {
     try {
       const response = await fetch(`${API_URL}/expenses`);
@@ -60,6 +89,18 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Error saving expenses:", error);
       alert("Gagal menyimpan data ke database");
+    }
+  };
+
+  const deleteExpense = async (id: string) => {
+    try {
+      await fetch(`${API_URL}/expenses/${id}`, {
+        method: "DELETE",
+      });
+      await fetchExpenses();
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      alert("Gagal menghapus data");
     }
   };
 
@@ -199,7 +240,7 @@ const App: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <ExpenseList expenses={expenses} />
+                <ExpenseList expenses={expenses} onDelete={deleteExpense} />
               )}
             </div>
           </>

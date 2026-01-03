@@ -6,6 +6,7 @@ export enum CategoryType {
   TRANSPORT = "Transportasi & Servis",
   GAYA_HIDUP = "Gaya Hidup",
   KESEHATAN = "Kesehatan",
+  TABUNGAN = "Tabungan",
   LAINNYA = "Lainnya"
 }
 
