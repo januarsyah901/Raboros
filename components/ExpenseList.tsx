@@ -71,7 +71,7 @@ export const ExpenseList: React.FC<Props> = ({ expenses, onDelete }) => {
                 isExpanded
                   ? theme === "dark"
                     ? "bg-slate-900/80 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
-                    : "bg-white border-indigo-400/30 shadow-lg"
+                    : "bg-white border-indigo-400/30"
                   : theme === "dark"
                   ? "bg-slate-900/40 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60"
                   : "bg-white/70 border-slate-200 hover:border-slate-300 hover:bg-white"
@@ -264,8 +264,8 @@ export const ExpenseList: React.FC<Props> = ({ expenses, onDelete }) => {
                           }}
                           className={`p-2.5 rounded-xl transition-all duration-300 active:scale-95 group/delete border ${
                             theme === "dark"
-                              ? "bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/40 hover:shadow-[0_0_15px_rgba(244,63,94,0.15)]"
-                              : "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100 hover:border-rose-300 hover:shadow-[0_0_15px_rgba(244,63,94,0.1)]"
+                              ? "bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/40 hover:shadow-[0_0_8px_rgba(244,63,94,0.1)]"
+                              : "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100 hover:border-rose-300 hover:shadow-[0_0_8px_rgba(244,63,94,0.08)]"
                           }`}
                           title="Hapus"
                         >
