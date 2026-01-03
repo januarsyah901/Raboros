@@ -205,5 +205,3 @@ Feel free to submit issues atau pull requests!
 MIT License
 
 ---
-
-Dibuat menggunakan Google Gemini AI
