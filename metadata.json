@@ -1,0 +1,7 @@
+{
+  "name": "Raboros AI Expense",
+  "description": "Premium AI-powered expense management and financial intelligence.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
