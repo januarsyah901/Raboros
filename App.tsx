@@ -11,6 +11,8 @@ import {
   Fingerprint,
   Sun,
   Moon,
+  Bird,
+  Trash2,
 } from "lucide-react";
 import { ExpenseItem, CategoryType, ChatMessage } from "./types";
 import { processInput, askAdvisor } from "./services/geminiService";
@@ -43,12 +45,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const handlePaste = async (e: ClipboardEvent) => {
       if (isChatMode || isProcessing) return;
-      
+
       const items = e.clipboardData?.items;
       if (!items) return;
 
       for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
+        if (items[i].type.indexOf("image") !== -1) {
           e.preventDefault();
           const blob = items[i].getAsFile();
           if (!blob) continue;
@@ -64,8 +66,8 @@ const App: React.FC = () => {
       }
     };
 
-    document.addEventListener('paste', handlePaste);
-    return () => document.removeEventListener('paste', handlePaste);
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
   }, [isChatMode, isProcessing]);
 
   const fetchExpenses = async () => {
@@ -152,15 +154,15 @@ const App: React.FC = () => {
     <div className="max-w-2xl mx-auto min-h-screen pb-40">
       {/* Dynamic Header */}
       <header
-        className={`sticky top-0 z-30 glass-dark px-8 py-6 flex items-center justify-between ${
+        className={`sticky top-0 z-30 glass-dark px-8 py-6 flex items-center justify-between rounded-b-[2.5rem] ${
           theme === "dark"
             ? "border-b border-white/5"
             : "border-b border-slate-200"
         }`}
       >
         <div className="flex items-center gap-4">
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-[0_0_20px_rgba(99,102,241,0.4)]">
-            <Fingerprint className="text-white" size={24} />
+          <div className="bg-gradient-to-br from-yellow-400 to-amber-500 p-2.5 rounded-2xl shadow-[0_0_20px_rgba(251,191,36,0.4)]">
+            <Bird className="text-white" size={24} />
           </div>
           <div>
             <h1
@@ -182,24 +184,52 @@ const App: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={toggleTheme}
-            className={`p-2 rounded-xl transition-all ${
+            className={`p-2.5 rounded-xl transition-all duration-300 active:scale-95 group ${
               theme === "dark"
                 ? "text-slate-400 hover:text-amber-400 hover:bg-amber-500/10"
                 : "text-slate-600 hover:text-indigo-600 hover:bg-indigo-500/10"
             }`}
             title={theme === "dark" ? "Light Mode" : "Dark Mode"}
           >
-            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === "dark" ? (
+              <Sun
+                size={20}
+                className="group-hover:rotate-90 transition-transform duration-500"
+              />
+            ) : (
+              <Moon
+                size={20}
+                className="group-hover:-rotate-12 transition-transform duration-500"
+              />
+            )}
           </button>
           <button
             onClick={() => {
-              setExpenses([]);
-              setChatHistory([]);
+              if (
+                confirm(
+                  "⚠️ PERINGATAN!\n\nApakah Anda yakin ingin menghapus SEMUA data pengeluaran?\n\nTindakan ini tidak dapat dibatalkan dan akan menghapus:\n• Semua log pengeluaran\n• Riwayat chat advisor\n• Data analisis keuangan\n\nKetik OK untuk melanjutkan."
+                )
+              ) {
+                setExpenses([]);
+                setChatHistory([]);
+                // Hapus data dari database
+                fetch(`${API_URL}/expenses`, { method: "DELETE" }).catch(
+                  console.error
+                );
+              }
             }}
-            className="p-2 text-slate-500 hover:text-rose-400 transition-colors"
-            title="Reset Data"
+            className={`px-4 py-2.5 rounded-xl transition-all duration-300 active:scale-95 flex items-center gap-2 font-bold text-xs group ${
+              theme === "dark"
+                ? "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:shadow-[0_0_20px_rgba(244,63,94,0.2)] border border-rose-500/20"
+                : "bg-rose-50 text-rose-600 hover:bg-rose-100 hover:shadow-[0_0_20px_rgba(244,63,94,0.15)] border border-rose-200"
+            }`}
+            title="Hapus Semua Data"
           >
-            <X size={20} />
+            <Trash2
+              size={16}
+              className="group-hover:rotate-12 transition-transform duration-300"
+            />
+            <span className="uppercase tracking-wider">Clear</span>
           </button>
         </div>
       </header>

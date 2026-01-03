@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from "react";
 
 export enum CategoryType {
   POKOK = "Kebutuhan Pokok",
@@ -7,7 +6,7 @@ export enum CategoryType {
   GAYA_HIDUP = "Gaya Hidup",
   KESEHATAN = "Kesehatan",
   TABUNGAN = "Tabungan",
-  LAINNYA = "Lainnya"
+  LAINNYA = "Lainnya",
 }
 
 export interface ExpenseItem {
@@ -28,6 +27,6 @@ export interface CategoryMetadata {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'model';
+  role: "user" | "model";
   text: string;
 }

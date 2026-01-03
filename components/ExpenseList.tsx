@@ -262,14 +262,14 @@ export const ExpenseList: React.FC<Props> = ({ expenses, onDelete }) => {
                               onDelete(item.id);
                             }
                           }}
-                          className={`opacity-0 group-hover/item:opacity-100 p-2 rounded-lg transition-all ${
+                          className={`p-2.5 rounded-xl transition-all duration-300 active:scale-95 group/delete border ${
                             theme === "dark"
-                              ? "hover:bg-rose-500/10 text-slate-500 hover:text-rose-400"
-                              : "hover:bg-rose-50 text-slate-400 hover:text-rose-600"
+                              ? "bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/40 hover:shadow-[0_0_15px_rgba(244,63,94,0.15)]"
+                              : "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100 hover:border-rose-300 hover:shadow-[0_0_15px_rgba(244,63,94,0.1)]"
                           }`}
                           title="Hapus"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={15} className="group-hover/delete:rotate-12 transition-transform duration-300" />
                         </button>
                       </div>
                     </div>
