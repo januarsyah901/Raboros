@@ -9,15 +9,19 @@ import {
   X,
   LayoutGrid,
   Fingerprint,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { ExpenseItem, CategoryType, ChatMessage } from "./types";
 import { processInput, askAdvisor } from "./services/geminiService";
 import { ExpenseDashboard } from "./components/ExpenseDashboard";
 import { ExpenseList } from "./components/ExpenseList";
+import { useTheme } from "./contexts/ThemeContext";
 
 const API_URL = "/api";
 
 const App: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [inputText, setInputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -106,21 +110,46 @@ const App: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto min-h-screen pb-40">
       {/* Dynamic Header */}
-      <header className="sticky top-0 z-30 glass-dark border-b border-white/5 px-8 py-6 flex items-center justify-between">
+      <header
+        className={`sticky top-0 z-30 glass-dark px-8 py-6 flex items-center justify-between ${
+          theme === "dark"
+            ? "border-b border-white/5"
+            : "border-b border-slate-200"
+        }`}
+      >
         <div className="flex items-center gap-4">
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-[0_0_20px_rgba(99,102,241,0.4)]">
             <Fingerprint className="text-white" size={24} />
           </div>
           <div>
-            <h1 className="font-black text-2xl text-white tracking-tighter leading-none">
+            <h1
+              className={`font-black text-2xl tracking-tighter leading-none ${
+                theme === "dark" ? "text-white" : "text-slate-900"
+              }`}
+            >
               RABOROS
             </h1>
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">
+            <p
+              className={`text-[9px] font-bold uppercase tracking-[0.3em] mt-1 ${
+                theme === "dark" ? "text-slate-500" : "text-slate-400"
+              }`}
+            >
               Financial Intelligence
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-xl transition-all ${
+              theme === "dark"
+                ? "text-slate-400 hover:text-amber-400 hover:bg-amber-500/10"
+                : "text-slate-600 hover:text-indigo-600 hover:bg-indigo-500/10"
+            }`}
+            title={theme === "dark" ? "Light Mode" : "Dark Mode"}
+          >
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
           <button
             onClick={() => {
               setExpenses([]);
@@ -140,16 +169,32 @@ const App: React.FC = () => {
             <ExpenseDashboard expenses={expenses} />
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <h2
+                  className={`text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2 ${
+                    theme === "dark" ? "text-slate-500" : "text-slate-600"
+                  }`}
+                >
                   <LayoutGrid size={14} /> Log Aktivitas
                 </h2>
               </div>
               {expenses.length === 0 ? (
-                <div className="glass-dark rounded-[2.5rem] p-16 text-center border-dashed border-2 border-white/5">
-                  <p className="text-slate-500 font-bold text-sm tracking-wide">
+                <div
+                  className={`glass-dark rounded-[2.5rem] p-16 text-center border-dashed border-2 ${
+                    theme === "dark" ? "border-white/5" : "border-slate-200"
+                  }`}
+                >
+                  <p
+                    className={`font-bold text-sm tracking-wide ${
+                      theme === "dark" ? "text-slate-500" : "text-slate-600"
+                    }`}
+                  >
                     Data Log Kosong
                   </p>
-                  <p className="text-[10px] text-slate-600 mt-2 uppercase tracking-widest font-semibold">
+                  <p
+                    className={`text-[10px] mt-2 uppercase tracking-widest font-semibold ${
+                      theme === "dark" ? "text-slate-600" : "text-slate-400"
+                    }`}
+                  >
                     Ready for initialization...
                   </p>
                 </div>
@@ -160,10 +205,20 @@ const App: React.FC = () => {
           </>
         ) : (
           <div className="space-y-6 min-h-[70vh] flex flex-col pt-4">
-            <div className="flex items-center justify-between bg-indigo-500/10 p-5 rounded-3xl border border-indigo-500/20">
+            <div
+              className={`flex items-center justify-between p-5 rounded-3xl border ${
+                theme === "dark"
+                  ? "bg-indigo-500/10 border-indigo-500/20"
+                  : "bg-indigo-50 border-indigo-200"
+              }`}
+            >
               <div className="flex items-center gap-4">
                 <Sparkles className="text-indigo-400" size={20} />
-                <div className="text-sm font-bold text-indigo-100 tracking-wide uppercase">
+                <div
+                  className={`text-sm font-bold tracking-wide uppercase ${
+                    theme === "dark" ? "text-indigo-100" : "text-indigo-700"
+                  }`}
+                >
                   Raboros Advisor
                 </div>
               </div>
@@ -177,12 +232,20 @@ const App: React.FC = () => {
 
             <div className="flex-1 space-y-6 overflow-y-auto max-h-[60vh] px-2">
               {chatHistory.length === 0 && (
-                <div className="text-center py-20 text-slate-600">
+                <div
+                  className={`text-center py-20 ${
+                    theme === "dark" ? "text-slate-600" : "text-slate-400"
+                  }`}
+                >
                   <Sparkles size={40} className="mx-auto mb-6 opacity-20" />
                   <p className="text-sm font-bold tracking-wide">
                     Menganalisis profil keuangan Anda...
                   </p>
-                  <p className="text-xs font-medium text-slate-700 mt-2 italic">
+                  <p
+                    className={`text-xs font-medium mt-2 italic ${
+                      theme === "dark" ? "text-slate-700" : "text-slate-500"
+                    }`}
+                  >
                     "Tanyakan strategi penghematan Anda"
                   </p>
                 </div>
@@ -198,7 +261,9 @@ const App: React.FC = () => {
                     className={`max-w-[85%] p-5 rounded-[1.8rem] text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-indigo-600 text-white rounded-tr-none shadow-lg shadow-indigo-900/20 font-medium"
-                        : "glass-dark text-slate-200 rounded-tl-none border-white/10"
+                        : theme === "dark"
+                        ? "glass-dark text-slate-200 rounded-tl-none border-white/10"
+                        : "bg-white text-slate-700 rounded-tl-none border border-slate-200 shadow-md"
                     }`}
                   >
                     {msg.text}
@@ -257,7 +322,11 @@ const App: React.FC = () => {
                     ? "Hubungi Advisor..."
                     : "Ketik belanja (ex: Bakso 25k)"
                 }
-                className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold text-white placeholder:text-slate-600 py-4 px-2"
+                className={`flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold py-4 px-2 ${
+                  theme === "dark"
+                    ? "text-white placeholder:text-slate-600"
+                    : "text-slate-900 placeholder:text-slate-400"
+                }`}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 disabled={isProcessing}
