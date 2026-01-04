@@ -68,7 +68,7 @@ export const ExpenseDashboard: React.FC<Props> = ({
               theme === "dark" ? "text-slate-500" : "text-slate-400"
             }`}
           >
-            Total Ekosistem
+            Total Keluaran
           </h1>
           <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/5 px-3 py-1 rounded-full border border-indigo-500/10">
             {expenses.length} OPS

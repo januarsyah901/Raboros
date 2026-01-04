@@ -6,16 +6,20 @@ Aplikasi manajemen keuangan pintar berbasis AI yang menggunakan Google Gemini un
 
 - **Scan Struk Belanja** - Upload foto struk untuk otomatis ekstrak data pengeluaran
 - **AI Financial Advisor** - Chat dengan AI untuk mendapatkan saran keuangan
-- **Dashboard Analytics** - Visualisasi pengeluaran berdasarkan kategori
+- **Dashboard Analytics** - Visualisasi pengeluaran berdasarkan kategori dengan breakdown real-time
+- **Budget Allocation** - Alokasi budget strategis per kategori dengan monitoring progress
+- **Anomaly Detection** - Deteksi otomatis ketika pengeluaran gaya hidup melampaui kebutuhan pokok
 - **Database MySQL** - Penyimpanan data permanen di database
-- **UI Modern** - Interface gelap yang elegan dengan glass morphism effect
+- **UI Modern** - Interface modern dengan glass morphism effect dan dark mode
+- **Kategori Smart** - 6 kategori pengeluaran: Kebutuhan Pokok, Transportasi, Gaya Hidup, Kesehatan, Tabungan, Lainnya
 
-## Teknologi
+## Teknologi & Dependensi
 
-- **Frontend**: React 19, TypeScript, Vite, TailwindCSS
-- **Backend**: Express.js, Node.js
+- **Frontend**: React 19, TypeScript, Vite, TailwindCSS, Lucide Icons
+- **Backend**: Express.js v5, Node.js
 - **Database**: MySQL 8.0
-- **AI**: Google Gemini API (@google/genai)
+- **AI**: Google Gemini API (@google/genai v1.34.0)
+- **Utilities**: CORS, dotenv, tsx
 
 ## Prasyarat
 
@@ -121,7 +125,14 @@ Aplikasi akan berjalan di:
 3. AI akan membaca dan ekstrak semua item belanja
 4. Data otomatis tersimpan ke database dengan kategori yang tepat
 
-### 3. Chat dengan AI Advisor
+### 3. Atur Budget Allocation
+
+1. Klik tombol **Edit** di bagian "Alokasi Strategis"
+2. Tentukan alokasi budget untuk setiap kategori
+3. Sistem akan menampilkan progress bar untuk tracking pengeluaran
+4. Warna indikator: 🟢 Aman / 🔴 Over Budget
+
+### 4. Chat dengan AI Advisor
 
 1. Klik icon **Chat** di header
 2. Tanyakan apapun tentang keuangan Anda
@@ -130,29 +141,38 @@ Aplikasi akan berjalan di:
    - "Kategori mana yang paling boros?"
    - "Berikan tips hemat untuk transportasi"
 
-### 4. Lihat Dashboard
+### 5. Monitor Dashboard
 
-- **Total Pengeluaran** ditampilkan di card utama
-- **Breakdown Kategori** menunjukkan distribusi pengeluaran
-- **Riwayat Transaksi** dengan detail per item
+- **Total Keluaran** - Menampilkan total pengeluaran dengan counter jumlah transaksi (OPS)
+- **Alokasi Strategis** - Progress per kategori dengan persentase penggunaan budget
+- **Insight Dinamis** - Notifikasi anomali atau kondisi stabil
+- **Kondisi Stabil** - Struktur pengeluaran seimbang antara kebutuhan pokok dan gaya hidup
+- **Anomali Terdeteksi** - Alert ketika gaya hidup pengeluaran > kebutuhan pokok
 
 ## Struktur Folder
 
 ```
 raboros/
-├── components/          # React components
-│   ├── ExpenseDashboard.tsx
-│   └── ExpenseList.tsx
-├── server/             # Backend API
-│   ├── index.ts        # Express server
-│   ├── db.ts          # MySQL connection
-│   └── setup-db.ts    # Database setup script
-├── services/          # Frontend services
-│   └── geminiService.ts
-├── App.tsx            # Main app component
-├── types.ts           # TypeScript types
-├── .env              # Environment variables (git ignored)
+├── components/             # React components
+│   ├── ExpenseDashboard.tsx   # Dashboard dengan budget tracking
+│   ├── ExpenseList.tsx        # Daftar transaksi
+│   ├── BudgetAllocationModal.tsx # Modal alokasi budget
+│   └── ThemeContext.tsx       # Theme dark/light
+├── contexts/               # React Context
+│   └── ThemeContext.tsx      # Theme management
+├── server/                # Backend API
+│   ├── index.ts           # Express server
+│   ├── db.ts              # MySQL connection
+│   └── setup-db.ts        # Database setup script
+├── services/              # Frontend services
+│   └── geminiService.ts   # Google Gemini API integration
+├── App.tsx               # Main app component
+├── types.ts              # TypeScript types & interfaces
+├── constants.tsx         # Kategori & constants
+├── .env                  # Environment variables (git ignored)
 ├── package.json
+├── tsconfig.json
+├── vite.config.ts
 └── README.md
 ```
 
@@ -189,12 +209,23 @@ npm install -D tsx
 
 ## API Endpoints
 
-| Method | Endpoint            | Deskripsi               |
-| ------ | ------------------- | ----------------------- |
-| GET    | `/api/expenses`     | Ambil semua pengeluaran |
-| POST   | `/api/expenses`     | Simpan pengeluaran baru |
-| DELETE | `/api/expenses/:id` | Hapus pengeluaran by ID |
-| DELETE | `/api/expenses`     | Hapus semua pengeluaran |
+| Method | Endpoint            | Deskripsi                       |
+| ------ | ------------------- | ------------------------------- |
+| GET    | `/api/expenses`     | Ambil semua pengeluaran         |
+| POST   | `/api/expenses`     | Simpan pengeluaran baru         |
+| DELETE | `/api/expenses/:id` | Hapus pengeluaran by ID         |
+| DELETE | `/api/expenses`     | Hapus semua pengeluaran         |
+| GET    | `/api/budget`       | Ambil alokasi budget saat ini   |
+| POST   | `/api/budget`       | Simpan/update budget allocation |
+
+## Kategori Pengeluaran
+
+1. **Kebutuhan Pokok** - Makanan, kebutuhan harian essensial
+2. **Transportasi & Servis** - Bensin, ojol, servis kendaraan
+3. **Gaya Hidup** - Entertainment, fashion, dining out
+4. **Kesehatan** - Obat, dokter, gym
+5. **Tabungan** - Investasi, dana darurat
+6. **Lainnya** - Kategori lain yang tidak masuk kategori di atas
 
 ## Kontribusi
 
