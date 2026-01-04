@@ -545,7 +545,7 @@ const App: React.FC = () => {
             >
               {/* Processing Indicator (Absolute Badge) */}
               {isProcessing && (
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2">
+                <div className="absolute -top-20 left-1/2 -translate-x-1/2">
                   <div className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest shadow-lg animate-pulse whitespace-nowrap">
                     <Loader2 size={10} className="animate-spin" />
                     <span>Memproses Data...</span>

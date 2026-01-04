@@ -4,14 +4,16 @@ Aplikasi manajemen keuangan pintar berbasis AI yang menggunakan Google Gemini un
 
 ## Fitur Utama
 
-- **Scan Struk Belanja** - Upload foto struk untuk otomatis ekstrak data pengeluaran
-- **AI Financial Advisor** - Chat dengan AI untuk mendapatkan saran keuangan
-- **Dashboard Analytics** - Visualisasi pengeluaran berdasarkan kategori dengan breakdown real-time
-- **Budget Allocation** - Alokasi budget strategis per kategori dengan monitoring progress
+- **Scan Struk Belanja** - Upload foto struk untuk otomatis ekstrak data pengeluaran dengan icon gambar
+- **AI Financial Advisor** - Chat dengan AI untuk mendapatkan saran keuangan strategis
+- **Dashboard Analytics** - Visualisasi pengeluaran berdasarkan kategori dengan breakdown real-time dan donut chart
+- **Budget Allocation** - Alokasi budget strategis per kategori dengan monitoring progress dan visual indicators
 - **Anomaly Detection** - Deteksi otomatis ketika pengeluaran gaya hidup melampaui kebutuhan pokok
+- **Custom Confirmation Modal** - Dialog konfirmasi untuk operasi sensitif seperti menghapus data
 - **Database MySQL** - Penyimpanan data permanen di database
-- **UI Modern** - Interface modern dengan glass morphism effect dan dark mode
-- **Kategori Smart** - 6 kategori pengeluaran: Kebutuhan Pokok, Transportasi, Gaya Hidup, Kesehatan, Tabungan, Lainnya
+- **UI Modern** - Interface modern dengan glass morphism effect, dark/light mode, dan responsive design
+- **Kategori Smart** - 6 kategori pengeluaran dengan deteksi otomatis sarapan, makan siang, dan makan malam
+- **Riwayat Transaksi** - Log lengkap semua pengeluaran dengan grouping per kategori
 
 ## Teknologi & Dependensi
 
@@ -120,17 +122,18 @@ Aplikasi akan berjalan di:
 
 ### 2. Scan Struk Belanja
 
-1. Klik icon **Camera**
-2. Upload foto struk belanja
+1. Klik icon **Gambar** di toolbar bawah
+2. Upload foto struk belanja (atau paste langsung via Ctrl+V)
 3. AI akan membaca dan ekstrak semua item belanja
 4. Data otomatis tersimpan ke database dengan kategori yang tepat
 
 ### 3. Atur Budget Allocation
 
-1. Klik tombol **Edit** di bagian "Alokasi Strategis"
+1. Klik tombol **Budget** di header dengan icon catatan (FileText)
 2. Tentukan alokasi budget untuk setiap kategori
 3. Sistem akan menampilkan progress bar untuk tracking pengeluaran
-4. Warna indikator: 🟢 Aman / 🔴 Over Budget
+4. Warna indikator: 🟢 Aman (biru) / 🔴 Over Budget (merah)
+5. Tekan tombol **Simpan** untuk menyimpan alokasi
 
 ### 4. Chat dengan AI Advisor
 
@@ -141,39 +144,48 @@ Aplikasi akan berjalan di:
    - "Kategori mana yang paling boros?"
    - "Berikan tips hemat untuk transportasi"
 
-### 5. Monitor Dashboard
+### 5. Monitor Dashboard & Riwayat Transaksi
 
-- **Total Keluaran** - Menampilkan total pengeluaran dengan counter jumlah transaksi (OPS)
-- **Alokasi Strategis** - Progress per kategori dengan persentase penggunaan budget
-- **Insight Dinamis** - Notifikasi anomali atau kondisi stabil
+- **Total Keluaran** - Menampilkan total pengeluaran dengan counter jumlah transaksi (OPS = Operations/Operasi)
+- **Alokasi Strategis** - Progress per kategori dengan persentase penggunaan budget dan visual indicator
+- **Insight Dinamis** - Notifikasi anomali atau kondisi stabil berdasarkan analisis real-time
 - **Kondisi Stabil** - Struktur pengeluaran seimbang antara kebutuhan pokok dan gaya hidup
-- **Anomali Terdeteksi** - Alert ketika gaya hidup pengeluaran > kebutuhan pokok
+- **Anomali Terdeteksi** - Alert otomatis ketika gaya hidup pengeluaran > kebutuhan pokok
+- **Riwayat Transaksi** - Log lengkap dengan grouping per kategori, sortir by date terbaru
+
+### 6. Menghapus Data
+
+- **Hapus Single Transaksi** - Klik tombol trash pada item, akan muncul confirmation modal
+- **Hapus Semua Data** - Klik tombol **Reset** di header, akan muncul modal konfirmasi dengan warning
+- Semua dialog konfirmasi menggunakan custom modal (bukan browser alert)
 
 ## Struktur Folder
 
 ```
 raboros/
-├── components/             # React components
-│   ├── ExpenseDashboard.tsx   # Dashboard dengan budget tracking
-│   ├── ExpenseList.tsx        # Daftar transaksi
-│   ├── BudgetAllocationModal.tsx # Modal alokasi budget
-│   └── ThemeContext.tsx       # Theme dark/light
-├── contexts/               # React Context
-│   └── ThemeContext.tsx      # Theme management
-├── server/                # Backend API
-│   ├── index.ts           # Express server
-│   ├── db.ts              # MySQL connection
-│   └── setup-db.ts        # Database setup script
-├── services/              # Frontend services
-│   └── geminiService.ts   # Google Gemini API integration
-├── App.tsx               # Main app component
-├── types.ts              # TypeScript types & interfaces
-├── constants.tsx         # Kategori & constants
-├── .env                  # Environment variables (git ignored)
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── README.md
+├── components/                    # React components
+│   ├── ExpenseDashboard.tsx       # Dashboard dengan budget tracking & anomaly detection
+│   ├── ExpenseList.tsx            # Daftar transaksi dengan grouping kategori
+│   ├── BudgetAllocationModal.tsx  # Modal alokasi budget strategis
+│   ├── ConfirmModal.tsx           # Modal konfirmasi custom untuk delete operations
+│   └── ConfirmModal.tsx           # Theme context untuk dark/light mode
+├── contexts/                      # React Context
+│   └── ThemeContext.tsx           # Theme management (dark/light)
+├── server/                        # Backend API
+│   ├── index.ts                   # Express server dengan routes API
+│   ├── db.ts                      # MySQL connection pool
+│   └── setup-db.ts                # Database & tabel auto setup
+├── services/                      # Frontend services
+│   └── geminiService.ts           # Google Gemini API integration untuk AI analysis
+├── App.tsx                        # Main app component dengan state management
+├── types.ts                       # TypeScript types & interfaces
+├── constants.tsx                  # Kategori metadata & icon constants
+├── .env                           # Environment variables (git ignored)
+├── package.json                   # Dependencies & npm scripts
+├── tsconfig.json                  # TypeScript config
+├── vite.config.ts                 # Vite bundler config
+├── index.html                     # HTML entry point
+└── README.md                       # Dokumentasi
 ```
 
 ## Keamanan
@@ -220,12 +232,22 @@ npm install -D tsx
 
 ## Kategori Pengeluaran
 
-1. **Kebutuhan Pokok** - Makanan, kebutuhan harian essensial
-2. **Transportasi & Servis** - Bensin, ojol, servis kendaraan
-3. **Gaya Hidup** - Entertainment, fashion, dining out
-4. **Kesehatan** - Obat, dokter, gym
-5. **Tabungan** - Investasi, dana darurat
+1. **Kebutuhan Pokok** - Makanan, bahan makanan dasar, sarapan, makan siang, makan malam, kebutuhan harian essensial
+2. **Transportasi & Servis** - Bensin, ojol, grab, service kendaraan, parkir, tol
+3. **Gaya Hidup** - Kafe, restoran, hiburan, fashion, hobi, lifestyle
+4. **Kesehatan** - Obat, dokter, rumah sakit, vitamin, alat kesehatan
+5. **Investasi & Tabungan** - Nabung, investasi, deposito, reksadana, saham, emas
 6. **Lainnya** - Kategori lain yang tidak masuk kategori di atas
+
+## Update Terbaru (v1.1.0)
+
+- ✨ Icon budget diganti dari Fingerprint ke FileText (catatan)
+- ✨ Icon scan diganti dari Camera ke Image (gambar)
+- ✨ Deteksi otomatis sarapan, makan siang, makan malam sebagai Kebutuhan Pokok
+- ✨ Custom Confirmation Modal untuk semua delete operations (tidak pakai browser alert)
+- ✨ Header "Log Aktivitas" diganti menjadi "Riwayat Transaksi" dengan icon Receipt
+- ✨ Responsive design di header (hide text di mobile, show di sm+)
+- ✨ Improved error handling dengan modal confirmation
 
 ## Kontribusi
 
