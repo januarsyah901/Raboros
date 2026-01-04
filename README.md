@@ -17,11 +17,13 @@ Aplikasi manajemen keuangan pintar berbasis AI yang menggunakan Google Gemini un
 
 ## Teknologi & Dependensi
 
-- **Frontend**: React 19, TypeScript, Vite, TailwindCSS, Lucide Icons
+- **Frontend**: React 19, TypeScript, Vite, TailwindCSS (via PostCSS), Lucide Icons
+- **Styling**: TailwindCSS 3.4+ dengan PostCSS dan Autoprefixer
 - **Backend**: Express.js v5, Node.js
 - **Database**: MySQL 8.0
 - **AI**: Google Gemini API (@google/genai v1.34.0)
 - **Utilities**: CORS, dotenv, tsx
+- **Build Tool**: Vite 6 dengan optimasi code splitting
 
 ## Prasyarat
 
@@ -167,8 +169,7 @@ raboros/
 │   ├── ExpenseDashboard.tsx       # Dashboard dengan budget tracking & anomaly detection
 │   ├── ExpenseList.tsx            # Daftar transaksi dengan grouping kategori
 │   ├── BudgetAllocationModal.tsx  # Modal alokasi budget strategis
-│   ├── ConfirmModal.tsx           # Modal konfirmasi custom untuk delete operations
-│   └── ConfirmModal.tsx           # Theme context untuk dark/light mode
+│   └── ConfirmModal.tsx           # Modal konfirmasi custom untuk delete operations
 ├── contexts/                      # React Context
 │   └── ThemeContext.tsx           # Theme management (dark/light)
 ├── server/                        # Backend API
@@ -177,15 +178,20 @@ raboros/
 │   └── setup-db.ts                # Database & tabel auto setup
 ├── services/                      # Frontend services
 │   └── geminiService.ts           # Google Gemini API integration untuk AI analysis
-├── App.tsx                        # Main app component dengan state management
+├── App.tsx                        # Main app component dengan state management & error handling
 ├── types.ts                       # TypeScript types & interfaces
 ├── constants.tsx                  # Kategori metadata & icon constants
-├── .env                           # Environment variables (git ignored)
-├── package.json                   # Dependencies & npm scripts
-├── tsconfig.json                  # TypeScript config
-├── vite.config.ts                 # Vite bundler config
+├── index.css                      # Global styles dengan Tailwind directives
+├── index.tsx                      # React entry point
 ├── index.html                     # HTML entry point
-└── README.md                       # Dokumentasi
+├── .env                           # Environment variables (git ignored)
+├── .gitignore                     # Git ignore rules
+├── package.json                   # Dependencies & npm scripts
+├── tsconfig.json                  # TypeScript configuration
+├── vite.config.ts                 # Vite bundler config dengan optimization
+├── tailwind.config.js             # Tailwind CSS configuration
+├── postcss.config.js              # PostCSS configuration
+└── README.md                       # Dokumentasi ini
 ```
 
 ## Keamanan
@@ -193,6 +199,22 @@ raboros/
 - File `.env` sudah ditambahkan ke `.gitignore`
 - Jangan commit API key ke repository
 - Gunakan environment variables untuk data sensitif
+
+## Error Handling & Quota Management
+
+### Error Modal dengan Solusi Detail
+
+- Menampilkan error dengan modal yang informatif (bukan browser alert)
+- Deteksi otomatis error type: Quota Exhausted, Auth Error, Server Error
+- Untuk Quota Limit: Tampilkan retry time dan link upgrade API
+- Untuk Auth Error: Saran cara generate API Key baru di Google AI Studio
+
+### Handling Gemini API Quota
+
+- Free Tier: 20 permintaan per hari
+- Error message akan menampilkan sisa waktu tunggu sebelum quota reset
+- Solusi: Upgrade ke API berbayar atau tunggu 24 jam untuk reset
+- Link: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com
 
 ## Troubleshooting
 
@@ -219,6 +241,29 @@ npm install -D tsx
 - Pastikan file `index.html` memiliki script: `<script type="module" src="/index.tsx"></script>`
 - Clear cache browser (Ctrl+Shift+R)
 
+### Error: Tailwind CSS warning tentang content pattern
+
+Jika melihat warning tentang `./**/*.js` matching node_modules:
+
+- Sudah fixed di `tailwind.config.js` dengan pattern yang spesifik
+- Pattern hanya scan: `./*.{js,ts,jsx,tsx}`, `./components/**`, `./contexts/**`, `./services/**`
+
+### Error: "Quota API Terlampaui" / 429 Error
+
+Anda telah mencapai batas free tier Google Gemini (20 permintaan/hari):
+
+- Solusi 1: Tunggu 24 jam untuk automatic reset
+- Solusi 2: Upgrade ke paid plan di https://console.cloud.google.com
+- Solusi 3: Gunakan API Key dari project GCP yang berbeda
+
+### Melihat Build Warning tentang chunk size
+
+Build optimization sudah diatur di `vite.config.ts`:
+
+- Chunk size warning limit: 1MB (dari default 500KB)
+- Manual chunks: vendor-react, vendor-gemini, components
+- Hasil: Faster load time dan better caching
+
 ## API Endpoints
 
 | Method | Endpoint            | Deskripsi                       |
@@ -239,15 +284,31 @@ npm install -D tsx
 5. **Investasi & Tabungan** - Nabung, investasi, deposito, reksadana, saham, emas
 6. **Lainnya** - Kategori lain yang tidak masuk kategori di atas
 
-## Update Terbaru (v1.1.0)
+## Update Terbaru (v1.2.0)
 
-- ✨ Icon budget diganti dari Fingerprint ke FileText (catatan)
-- ✨ Icon scan diganti dari Camera ke Image (gambar)
-- ✨ Deteksi otomatis sarapan, makan siang, makan malam sebagai Kebutuhan Pokok
-- ✨ Custom Confirmation Modal untuk semua delete operations (tidak pakai browser alert)
-- ✨ Header "Log Aktivitas" diganti menjadi "Riwayat Transaksi" dengan icon Receipt
-- ✨ Responsive design di header (hide text di mobile, show di sm+)
-- ✨ Improved error handling dengan modal confirmation
+### Styling & Build Optimization
+
+- ✨ Tailwind CSS dipindahkan dari CDN ke local setup via PostCSS
+- ✨ Buat `tailwind.config.js`, `postcss.config.js`, `index.css` untuk production-ready styling
+- ✨ Vite build optimization dengan manual chunk splitting (vendor-react, vendor-gemini, components)
+- ✨ Chunk size warning limit ditingkatkan menjadi 1MB dengan optimal caching strategy
+
+### Error Handling Enhancement
+
+- ✨ Error Modal dengan design yang user-friendly (bukan browser alert)
+- ✨ Smart error detection: Quota Exhausted, Auth Error, Server Error
+- ✨ Extract retry time dari error message (e.g., "Please retry in 15 seconds")
+- ✨ Solusi detail untuk setiap error type dengan actionable steps
+- ✨ Link helper untuk fix API Key atau upgrade subscription
+
+### Previous Updates (v1.1.0)
+
+- Icon budget diganti dari Fingerprint ke FileText (catatan)
+- Icon scan diganti dari Camera ke Image (gambar)
+- Deteksi otomatis sarapan, makan siang, makan malam sebagai Kebutuhan Pokok
+- Custom Confirmation Modal untuk semua delete operations (tidak pakai browser alert)
+- Header "Log Aktivitas" diganti menjadi "Riwayat Transaksi" dengan icon Receipt
+- Responsive design di header (hide text di mobile, show di sm+)
 
 ## Kontribusi
 
