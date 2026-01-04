@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Calendar, Hash, Trash2 } from "lucide-react";
 import { ExpenseItem, CategoryType } from "../types";
 import { CATEGORIES } from "../constants";
 import { useTheme } from "../contexts/ThemeContext";
+import { ConfirmModal } from "./ConfirmModal";
 
 interface Props {
   expenses: ExpenseItem[];
@@ -20,6 +21,15 @@ const formatter = new Intl.NumberFormat("id-ID", {
 export const ExpenseList: React.FC<Props> = ({ expenses, onDelete }) => {
   const { theme } = useTheme();
   const [expandedCat, setExpandedCat] = useState<CategoryType | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    itemName: string;
+    itemId: string;
+  }>({
+    isOpen: false,
+    itemName: "",
+    itemId: "",
+  });
 
   // Optimasi: Grouping data dilakukan sekali saja menggunakan useMemo
   // Struktur data: { [Category]: { items: [], total: 0 } }
@@ -258,9 +268,11 @@ export const ExpenseList: React.FC<Props> = ({ expenses, onDelete }) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm(`Hapus "${item.item}"?`)) {
-                              onDelete(item.id);
-                            }
+                            setConfirmModal({
+                              isOpen: true,
+                              itemName: item.item,
+                              itemId: item.id,
+                            });
                           }}
                           className={`p-2.5 rounded-xl transition-all duration-300 active:scale-95 group/delete border ${
                             theme === "dark"
@@ -289,6 +301,23 @@ export const ExpenseList: React.FC<Props> = ({ expenses, onDelete }) => {
           </div>
         );
       })}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="Hapus Transaksi?"
+        message={`Apakah Anda yakin ingin menghapus "${confirmModal.itemName}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Hapus"
+        cancelText="Batal"
+        isDangerous={true}
+        onConfirm={() => {
+          onDelete(confirmModal.itemId);
+          setConfirmModal({ isOpen: false, itemName: "", itemId: "" });
+        }}
+        onCancel={() =>
+          setConfirmModal({ isOpen: false, itemName: "", itemId: "" })
+        }
+      />
     </div>
   );
 };

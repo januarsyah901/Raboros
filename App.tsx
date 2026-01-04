@@ -19,6 +19,7 @@ import { processInput, askAdvisor } from "./services/geminiService";
 import { ExpenseDashboard } from "./components/ExpenseDashboard";
 import { ExpenseList } from "./components/ExpenseList";
 import { BudgetAllocationModal } from "./components/BudgetAllocationModal";
+import { ConfirmModal } from "./components/ConfirmModal";
 import { useTheme } from "./contexts/ThemeContext";
 
 const API_URL = "/api";
@@ -32,6 +33,18 @@ const App: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [budget, setBudget] = useState<Budget | null>(null);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    isDangerous?: boolean;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -153,7 +166,13 @@ const App: React.FC = () => {
       await fetchExpenses();
     } catch (error) {
       console.error("Error deleting expense:", error);
-      alert("Gagal menghapus data");
+      setConfirmModal({
+        isOpen: true,
+        title: "Gagal Menghapus",
+        message: "Terjadi kesalahan saat menghapus data. Silakan coba lagi.",
+        onConfirm: () => setConfirmModal({ ...confirmModal, isOpen: false }),
+        isDangerous: false,
+      });
     }
   };
 
@@ -321,18 +340,21 @@ const App: React.FC = () => {
             </button>
             <button
               onClick={() => {
-                if (
-                  confirm(
-                    "⚠️ PERINGATAN!\n\nApakah Anda yakin ingin menghapus SEMUA data pengeluaran?\n\nTindakan ini tidak dapat dibatalkan dan akan menghapus:\n• Semua log pengeluaran\n• Riwayat chat advisor\n• Data analisis keuangan\n\nKetik OK untuk melanjutkan."
-                  )
-                ) {
-                  setExpenses([]);
-                  setChatHistory([]);
-                  // Hapus data dari database
-                  fetch(`${API_URL}/expenses`, { method: "DELETE" }).catch(
-                    console.error
-                  );
-                }
+                setConfirmModal({
+                  isOpen: true,
+                  title: "Hapus Semua Data?",
+                  message:
+                    "Apakah Anda yakin ingin menghapus SEMUA data pengeluaran? Tindakan ini tidak dapat dibatalkan dan akan menghapus semua log pengeluaran, riwayat chat advisor, dan data analisis keuangan.",
+                  onConfirm: () => {
+                    setExpenses([]);
+                    setChatHistory([]);
+                    setConfirmModal({ ...confirmModal, isOpen: false });
+                    fetch(`${API_URL}/expenses`, { method: "DELETE" }).catch(
+                      console.error
+                    );
+                  },
+                  isDangerous: true,
+                });
               }}
               className={`px-4 py-2.5 rounded-xl transition-all duration-300 active:scale-95 flex items-center gap-2 font-bold text-xs group ${
                 theme === "dark"
@@ -554,6 +576,18 @@ const App: React.FC = () => {
           initialBudget={budget}
           onSubmit={handleBudgetSubmit}
           onClose={() => setShowBudgetModal(false)}
+        />
+
+        {/* Confirmation Modal */}
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.isDangerous ? "Hapus Semua" : "Hapus"}
+          cancelText="Batal"
+          isDangerous={confirmModal.isDangerous}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
         />
       </div>
     </div>
