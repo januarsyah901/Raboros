@@ -25,5 +25,24 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "."),
       },
     },
+    build: {
+      chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Vendor chunks untuk optimasi
+            "vendor-react": ["react", "react-dom"],
+            "vendor-gemini": ["@google/genai"],
+            // Components chunk
+            components: [
+              "./components/ExpenseDashboard.tsx",
+              "./components/ExpenseList.tsx",
+              "./components/BudgetAllocationModal.tsx",
+              "./components/ConfirmModal.tsx",
+            ],
+          },
+        },
+      },
+    },
   };
 });

@@ -11,9 +11,9 @@ const EXPENSE_SCHEMA = {
   items: {
     type: Type.OBJECT,
     properties: {
-      item: { 
-        type: Type.STRING, 
-        description: "Nama barang atau layanan yang dibeli" 
+      item: {
+        type: Type.STRING,
+        description: "Nama barang atau layanan yang dibeli",
       },
       price: {
         type: Type.NUMBER,
@@ -21,15 +21,16 @@ const EXPENSE_SCHEMA = {
       },
       category: {
         type: Type.STRING,
-        description: "Kategori pengeluaran: 'Kebutuhan Pokok', 'Transportasi & Servis', 'Gaya Hidup', 'Kesehatan', 'Investasi & Tabungan', atau 'Lainnya'",
+        description:
+          "Kategori pengeluaran: 'Kebutuhan Pokok', 'Transportasi & Servis', 'Gaya Hidup', 'Kesehatan', 'Investasi & Tabungan', atau 'Lainnya'",
         enum: [
           "Kebutuhan Pokok",
           "Transportasi & Servis",
           "Gaya Hidup",
           "Kesehatan",
           "Investasi & Tabungan",
-          "Lainnya"
-        ]
+          "Lainnya",
+        ],
       },
       source: {
         type: Type.STRING,
@@ -145,11 +146,8 @@ export const processInput = async (
   const contents =
     typeof input === "string"
       ? RABOROS_PROMPT + "\n\n═══ INPUT PENGGUNA ═══\n" + input
-      : { 
-          parts: [
-            { text: RABOROS_PROMPT }, 
-            { inlineData: input }
-          ] 
+      : {
+          parts: [{ text: RABOROS_PROMPT }, { inlineData: input }],
         };
 
   try {
@@ -182,11 +180,11 @@ export const processInput = async (
         CategoryType.GAYA_HIDUP,
         CategoryType.KESEHATAN,
         CategoryType.TABUNGAN,
-        CategoryType.LAINNYA
-      ];  
+        CategoryType.LAINNYA,
+      ];
 
-      const category = validCategories.includes(res.category) 
-        ? res.category 
+      const category = validCategories.includes(res.category)
+        ? res.category
         : "Lainnya";
 
       return {
@@ -200,9 +198,36 @@ export const processInput = async (
     });
   } catch (error) {
     console.error("❌ Raboros Engine Error:", error);
-    throw new Error(
-      "Raboros Intelligence mengalami gangguan. Mohon coba lagi atau hubungi support."
-    );
+
+    // Extract error details from the error object
+    let errorMessage =
+      "Raboros Intelligence mengalami gangguan. Mohon coba lagi atau hubungi support.";
+
+    if (error instanceof Error) {
+      const errorStr = error.message || error.toString();
+
+      // Check for specific error codes in the error message
+      if (errorStr.includes("429") || errorStr.includes("RESOURCE_EXHAUSTED")) {
+        errorMessage = "QUOTA_EXHAUSTED: " + errorStr;
+      } else if (
+        errorStr.includes("401") ||
+        errorStr.includes("UNAUTHENTICATED")
+      ) {
+        errorMessage = "AUTH_ERROR: " + errorStr;
+      } else {
+        errorMessage = errorStr;
+      }
+    } else if (typeof error === "object" && error !== null) {
+      // Try to extract error message from object
+      const errorObj = error as any;
+      if (errorObj.message) {
+        errorMessage = errorObj.message;
+      } else if (errorObj.error?.message) {
+        errorMessage = errorObj.error.message;
+      }
+    }
+
+    throw new Error(errorMessage);
   }
 };
 
@@ -217,15 +242,13 @@ export const askAdvisor = async (
 
   // Agregasi data untuk konteks yang lebih kaya
   const totalExpense = expenses.reduce((sum, e) => sum + e.price, 0);
-  
+
   const categoryBreakdown = expenses.reduce((acc, e) => {
     acc[e.category] = (acc[e.category] || 0) + e.price;
     return acc;
   }, {} as Record<string, number>);
 
-  const topExpenses = expenses
-    .sort((a, b) => b.price - a.price)
-    .slice(0, 5);
+  const topExpenses = expenses.sort((a, b) => b.price - a.price).slice(0, 5);
 
   const context = `
 ═══════════════════════════════════════════════════════════════════
@@ -236,15 +259,33 @@ TOTAL PENGELUARAN: Rp ${totalExpense.toLocaleString("id-ID")}
 
 BREAKDOWN PER KATEGORI:
 ${Object.entries(categoryBreakdown)
-  .map(([cat, total]) => `- ${cat}: Rp ${total.toLocaleString("id-ID")} (${((total/totalExpense)*100).toFixed(1)}%)`)
+  .map(
+    ([cat, total]) =>
+      `- ${cat}: Rp ${total.toLocaleString("id-ID")} (${(
+        (total / totalExpense) *
+        100
+      ).toFixed(1)}%)`
+  )
   .join("\n")}
 
 TOP 5 PENGELUARAN TERBESAR:
-${topExpenses.map((e, i) => `${i+1}. ${e.item} - Rp ${e.price.toLocaleString("id-ID")} (${e.category})`).join("\n")}
+${topExpenses
+  .map(
+    (e, i) =>
+      `${i + 1}. ${e.item} - Rp ${e.price.toLocaleString("id-ID")} (${
+        e.category
+      })`
+  )
+  .join("\n")}
 
 RIWAYAT TRANSAKSI LENGKAP:
 ${expenses
-  .map((e) => `${new Date(e.date).toLocaleDateString("id-ID")}: ${e.item} @ ${e.source} - Rp ${e.price.toLocaleString("id-ID")} [${e.category}]`)
+  .map(
+    (e) =>
+      `${new Date(e.date).toLocaleDateString("id-ID")}: ${e.item} @ ${
+        e.source
+      } - Rp ${e.price.toLocaleString("id-ID")} [${e.category}]`
+  )
   .join("\n")}
 `;
 
@@ -310,9 +351,7 @@ export const generateMonthlyReport = async (
   expenses: ExpenseItem[],
   month: string // Format: "2025-01"
 ): Promise<string> => {
-  const monthlyExpenses = expenses.filter(e => 
-    e.date.startsWith(month)
-  );
+  const monthlyExpenses = expenses.filter((e) => e.date.startsWith(month));
 
   const query = `Buatkan laporan keuangan komprehensif untuk periode ${month}. Sertakan:
   1. Executive summary (total & tren)
@@ -336,11 +375,15 @@ export const compareBudget = async (
     return acc;
   }, {} as Record<string, number>);
 
-  const comparison = Object.entries(budgetLimits).map(([cat, limit]) => {
-    const spent = actual[cat] || 0;
-    const status = spent > limit ? "⚠️ OVER" : "✓ OK";
-    return `${cat}: Rp ${spent.toLocaleString("id-ID")} / Rp ${limit.toLocaleString("id-ID")} ${status}`;
-  }).join("\n");
+  const comparison = Object.entries(budgetLimits)
+    .map(([cat, limit]) => {
+      const spent = actual[cat] || 0;
+      const status = spent > limit ? "⚠️ OVER" : "✓ OK";
+      return `${cat}: Rp ${spent.toLocaleString(
+        "id-ID"
+      )} / Rp ${limit.toLocaleString("id-ID")} ${status}`;
+    })
+    .join("\n");
 
   const query = `Analisis perbandingan budget vs aktual berikut:\n\n${comparison}\n\nBerikan insight & action plan.`;
 

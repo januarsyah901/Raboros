@@ -13,6 +13,7 @@ import {
   Moon,
   Bird,
   Trash2,
+  AlertCircle,
 } from "lucide-react";
 import { ExpenseItem, CategoryType, ChatMessage, Budget } from "./types";
 import { processInput, askAdvisor } from "./services/geminiService";
@@ -44,6 +45,16 @@ const App: React.FC = () => {
     title: "",
     message: "",
     onConfirm: () => {},
+  });
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    details?: string;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -196,8 +207,59 @@ const App: React.FC = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     } catch (error) {
-      console.error(error);
-      alert("Sistem Raboros mengalami gangguan teknis.");
+      console.error("Error during process:", error);
+
+      // Parse error message
+      let errorTitle = "Terjadi Kesalahan";
+      let errorMessage = "Sistem mengalami gangguan teknis. Silakan coba lagi.";
+      let errorDetails = "";
+
+      if (error instanceof Error) {
+        const errorStr = error.message || error.toString();
+
+        // Handle Gemini API errors - enhanced detection
+        if (
+          errorStr.includes("429") ||
+          errorStr.includes("RESOURCE_EXHAUSTED") ||
+          errorStr.includes("QUOTA_EXHAUSTED")
+        ) {
+          errorTitle = "⚠️ Quota API Terlampaui";
+          errorMessage =
+            "Anda telah mencapai batas permintaan gratis Google Gemini (20 permintaan per hari).";
+
+          // Extract retry time if available
+          const retryMatch = errorStr.match(/Please retry in ([\d.]+)s/);
+          const retryTime = retryMatch
+            ? Math.ceil(parseFloat(retryMatch[1]))
+            : null;
+
+          errorDetails = retryTime
+            ? `Tunggu ${retryTime} detik sebelum mencoba lagi.\n\nSolusi:\n1. Tunggu hingga quota reset (24 jam)\n2. Upgrade ke API berbayar di console.cloud.google.com\n3. Gunakan API Key yang berbeda atau project GCP baru`
+            : "Solusi:\n1. Tunggu 24 jam untuk reset quota\n2. Upgrade ke API berbayar\n3. Hubungi Google Cloud untuk informasi lebih lanjut";
+        } else if (
+          errorStr.includes("401") ||
+          errorStr.includes("UNAUTHENTICATED") ||
+          errorStr.includes("AUTH_ERROR")
+        ) {
+          errorTitle = "❌ API Key Tidak Valid";
+          errorMessage = "Konfigurasi API Key Gemini tidak benar atau expired.";
+          errorDetails =
+            "Periksa file .env dan pastikan GEMINI_API_KEY sudah benar.\n\nCara fix:\n1. Buka Google AI Studio: https://aistudio.google.com/app/apikey\n2. Buat API Key baru\n3. Update file .env dengan API Key terbaru\n4. Restart aplikasi";
+        } else if (errorStr.includes("500")) {
+          errorTitle = "🔴 Server Error";
+          errorMessage = "Terjadi kesalahan pada server Gemini API.";
+          errorDetails = "Silakan coba lagi dalam beberapa saat.";
+        } else {
+          errorMessage = errorStr;
+        }
+      }
+
+      setErrorModal({
+        isOpen: true,
+        title: errorTitle,
+        message: errorMessage,
+        details: errorDetails,
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -660,6 +722,80 @@ const App: React.FC = () => {
           onConfirm={confirmModal.onConfirm}
           onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
         />
+
+        {/* Error Modal */}
+        {errorModal.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
+            />
+
+            {/* Modal */}
+            <div
+              className={`relative z-10 w-full max-w-sm rounded-[2rem] border p-6 shadow-2xl transition-all ${
+                theme === "dark"
+                  ? "bg-slate-900 border-rose-800/50"
+                  : "bg-white border-rose-200"
+              }`}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
+                className={`absolute right-4 top-4 p-2 rounded-lg transition-colors ${
+                  theme === "dark"
+                    ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                <X size={20} />
+              </button>
+
+              {/* Error Icon */}
+              <div className="mb-4 flex justify-center">
+                <div className="rounded-full bg-rose-500/10 p-4">
+                  <AlertCircle className="text-rose-500" size={40} />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h2 className="text-center text-lg font-bold text-rose-600 dark:text-rose-400">
+                {errorModal.title}
+              </h2>
+
+              {/* Message */}
+              <p
+                className={`mt-3 text-center text-sm leading-relaxed ${
+                  theme === "dark" ? "text-slate-300" : "text-slate-600"
+                }`}
+              >
+                {errorModal.message}
+              </p>
+
+              {/* Details */}
+              {errorModal.details && (
+                <div
+                  className={`mt-4 p-4 rounded-lg text-sm whitespace-pre-wrap ${
+                    theme === "dark"
+                      ? "bg-slate-800/50 text-slate-300"
+                      : "bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {errorModal.details}
+                </div>
+              )}
+
+              {/* Button */}
+              <button
+                onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
+                className="mt-6 w-full rounded-lg bg-rose-500 px-4 py-2.5 font-medium text-white transition-colors hover:bg-rose-600 active:scale-95"
+              >
+                Mengerti
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
