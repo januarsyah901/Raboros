@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
 import * as dotenv from "dotenv";
+import { randomUUID } from "crypto";
 import pool from "./db";
-import { ExpenseItem } from "../types";
+import { ExpenseItem, Budget, CategoryType } from "../types";
 
 dotenv.config();
 
@@ -71,6 +72,119 @@ app.delete("/api/expenses", async (req, res) => {
   } catch (error) {
     console.error("Error deleting all expenses:", error);
     res.status(500).json({ error: "Failed to delete expenses" });
+  }
+});
+
+// GET budget
+app.get("/api/budget", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM budget ORDER BY created_at DESC LIMIT 1"
+    );
+    if (rows && (rows as any[]).length > 0) {
+      const budget = (rows as any[])[0];
+      res.json({
+        id: budget.id,
+        total_budget: budget.total_budget,
+        allocations: {
+          [CategoryType.POKOK]: budget.pokok_budget,
+          [CategoryType.TRANSPORT]: budget.transport_budget,
+          [CategoryType.GAYA_HIDUP]: budget.gaya_hidup_budget,
+          [CategoryType.KESEHATAN]: budget.kesehatan_budget,
+          [CategoryType.TABUNGAN]: budget.tabungan_budget,
+          [CategoryType.LAINNYA]: budget.lainnya_budget,
+        },
+      });
+    } else {
+      res.json(null);
+    }
+  } catch (error) {
+    console.error("Error fetching budget:", error);
+    res.status(500).json({ error: "Failed to fetch budget" });
+  }
+});
+
+// POST/PUT budget
+app.post("/api/budget", async (req, res) => {
+  try {
+    const { total_budget, allocations } = req.body as Budget;
+
+    console.log("Budget request received:", {
+      total_budget,
+      allocations,
+      body: req.body,
+    });
+
+    if (!total_budget || total_budget <= 0) {
+      return res.status(400).json({ error: "Invalid total budget" });
+    }
+
+    if (!allocations) {
+      return res.status(400).json({ error: "Missing allocations" });
+    }
+
+    // Cek apakah sudah ada budget
+    const [existing] = await pool.query("SELECT id FROM budget LIMIT 1");
+
+    const id =
+      existing && (existing as any[]).length > 0
+        ? (existing as any[])[0].id
+        : randomUUID();
+
+    if (existing && (existing as any[]).length > 0) {
+      // Update
+      await pool.query(
+        `UPDATE budget SET 
+          total_budget = ?, 
+          pokok_budget = ?, 
+          transport_budget = ?, 
+          gaya_hidup_budget = ?, 
+          kesehatan_budget = ?, 
+          tabungan_budget = ?, 
+          lainnya_budget = ?,
+          updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ?`,
+        [
+          total_budget,
+          allocations[CategoryType.POKOK] || 0,
+          allocations[CategoryType.TRANSPORT] || 0,
+          allocations[CategoryType.GAYA_HIDUP] || 0,
+          allocations[CategoryType.KESEHATAN] || 0,
+          allocations[CategoryType.TABUNGAN] || 0,
+          allocations[CategoryType.LAINNYA] || 0,
+          id,
+        ]
+      );
+    } else {
+      // Insert
+      await pool.query(
+        `INSERT INTO budget 
+          (id, total_budget, pokok_budget, transport_budget, gaya_hidup_budget, kesehatan_budget, tabungan_budget, lainnya_budget) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          total_budget,
+          allocations[CategoryType.POKOK] || 0,
+          allocations[CategoryType.TRANSPORT] || 0,
+          allocations[CategoryType.GAYA_HIDUP] || 0,
+          allocations[CategoryType.KESEHATAN] || 0,
+          allocations[CategoryType.TABUNGAN] || 0,
+          allocations[CategoryType.LAINNYA] || 0,
+        ]
+      );
+    }
+
+    res.status(201).json({
+      success: true,
+      budget: {
+        id,
+        total_budget,
+        allocations,
+      },
+    });
+  } catch (error) {
+    console.error("Error saving budget:", error);
+    res.status(500).json({ error: "Failed to save budget" });
   }
 });
 

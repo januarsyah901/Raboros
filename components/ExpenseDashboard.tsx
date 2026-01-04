@@ -7,12 +7,14 @@ import {
   TrendingUp,
   CheckCircle2,
 } from "lucide-react";
-import { ExpenseItem, CategoryType } from "../types";
+import { ExpenseItem, CategoryType, Budget } from "../types";
 import { CATEGORIES } from "../constants";
 import { useTheme } from "../contexts/ThemeContext";
 
 interface Props {
   expenses: ExpenseItem[];
+  budget?: Budget | null;
+  onEditBudget?: () => void;
 }
 
 // Formatter dipisah agar tidak dibuat ulang setiap render
@@ -25,7 +27,11 @@ const formatter = new Intl.NumberFormat("id-ID", {
 
 const formatRupiah = (number: number) => formatter.format(number);
 
-export const ExpenseDashboard: React.FC<Props> = ({ expenses }) => {
+export const ExpenseDashboard: React.FC<Props> = ({
+  expenses,
+  budget,
+  onEditBudget,
+}) => {
   const { theme } = useTheme();
 
   // Optimasi 1: Hitung semua data dalam satu kali pass (Single Pass Loop)
@@ -89,101 +95,120 @@ export const ExpenseDashboard: React.FC<Props> = ({ expenses }) => {
           Financial Overview • Raboros Intel
         </div>
       </div>
+      {/* Budget Monitor - Strategic Allocation */}
+      {budget && (
+        <div
+          className={`rounded-[2.5rem] p-8 backdrop-blur-md ${
+            theme === "dark"
+              ? "border border-slate-800 bg-slate-950/40"
+              : "border border-slate-200 bg-white/60"
+          }`}
+        >
+          <div className="mb-8 flex items-center justify-between">
+            <h2
+              className={`flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] ${
+                theme === "dark" ? "text-slate-400" : "text-slate-600"
+              }`}
+            >
+              <Target size={14} className="text-purple-400" /> Alokasi Strategis
+            </h2>
+            <button
+              onClick={onEditBudget}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                theme === "dark"
+                  ? "bg-slate-800 text-gray-300 hover:bg-slate-700"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Edit
+            </button>
+          </div>
 
-      {/* Budget Monitor */}
-      <div
-        className={`rounded-[2.5rem] p-8 backdrop-blur-md ${
-          theme === "dark"
-            ? "border border-slate-800 bg-slate-950/40"
-            : "border border-slate-200 bg-white/60"
-        }`}
-      >
-        <div className="mb-8 flex items-center justify-between">
-          <h2
-            className={`flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] ${
-              theme === "dark" ? "text-slate-400" : "text-slate-600"
-            }`}
-          >
-            <Target size={14} className="text-purple-400" /> Alokasi Strategis
-          </h2>
-        </div>
+          <div className="space-y-7">
+            {(Object.keys(CATEGORIES) as CategoryType[]).map((cat) => {
+              const allocated = budget.allocations[cat] || 0;
+              const spent = stats.byCategory[cat] || 0;
+              const remaining = allocated - spent;
+              // Hitung persentase tapi cap di 100 untuk width bar, tapi biarkan text real
+              const percentReal = allocated > 0 ? (spent / allocated) * 100 : 0;
+              const percentBar = Math.min(percentReal, 100);
+              const isOverBudget = spent > allocated;
+              const metadata = CATEGORIES[cat];
 
-        <div className="space-y-7">
-          {(Object.keys(CATEGORIES) as CategoryType[]).map((cat) => {
-            const amount = stats.byCategory[cat] || 0;
-            const metadata = CATEGORIES[cat];
-            // Hitung persentase tapi cap di 100 untuk width bar, tapi biarkan text real
-            const percentReal = (amount / metadata.budget) * 100;
-            const percentBar = Math.min(percentReal, 100);
-            const isOverBudget = amount > metadata.budget;
-
-            return (
-              <div key={cat} className="group relative">
-                <div className="mb-2 flex items-end justify-between">
-                  <div>
-                    <div className="mb-1 flex items-center gap-2">
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          isOverBudget ? "bg-rose-500" : "bg-emerald-500"
-                        }`}
-                      />
-                      <span
-                        className={`text-[10px] font-bold uppercase tracking-widest ${
-                          theme === "dark" ? "text-slate-500" : "text-slate-600"
-                        }`}
-                      >
-                        {cat}
-                      </span>
+              return (
+                <div key={cat} className="group relative">
+                  <div className="mb-2 flex items-end justify-between">
+                    <div>
+                      <div className="mb-1 flex items-center gap-2">
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            isOverBudget ? "bg-rose-500" : "bg-emerald-500"
+                          }`}
+                        />
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-widest ${
+                            theme === "dark"
+                              ? "text-slate-500"
+                              : "text-slate-600"
+                          }`}
+                        >
+                          {cat}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-1.5">
+                        <span
+                          className={`text-sm font-bold ${
+                            theme === "dark"
+                              ? "text-slate-200"
+                              : "text-slate-800"
+                          }`}
+                        >
+                          {formatRupiah(spent)}
+                        </span>
+                        <span
+                          className={`text-xs font-medium ${
+                            theme === "dark"
+                              ? "text-slate-600"
+                              : "text-slate-400"
+                          }`}
+                        >
+                          / {formatRupiah(allocated)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span
-                        className={`text-sm font-bold ${
-                          theme === "dark" ? "text-slate-200" : "text-slate-800"
-                        }`}
-                      >
-                        {formatRupiah(amount)}
-                      </span>
-                      <span
-                        className={`text-xs font-medium ${
-                          theme === "dark" ? "text-slate-600" : "text-slate-400"
-                        }`}
-                      >
-                        / {formatRupiah(metadata.budget)}
+                    <div
+                      className={`text-right ${
+                        isOverBudget ? "text-rose-400" : "text-emerald-400"
+                      }`}
+                    >
+                      <span className="block text-lg font-black">
+                        {percentReal.toFixed(0)}%
                       </span>
                     </div>
                   </div>
+
+                  {/* Progress Bar Container */}
                   <div
-                    className={`text-right ${
-                      isOverBudget ? "text-rose-400" : "text-emerald-400"
+                    className={`h-2 w-full overflow-hidden rounded-full p-[2px] ${
+                      theme === "dark" ? "bg-slate-800/50" : "bg-slate-200"
                     }`}
                   >
-                    <span className="block text-lg font-black">
-                      {percentReal.toFixed(0)}%
-                    </span>
+                    <div
+                      style={{ width: `${percentBar}%` }}
+                      className={`h-full rounded-full transition-all duration-1000 ease-out 
+                           ${
+                             isOverBudget
+                               ? "bg-gradient-to-r from-rose-600 to-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.5)]"
+                               : "bg-gradient-to-r from-indigo-500 to-purple-500"
+                           }`}
+                    />
                   </div>
                 </div>
-
-                {/* Progress Bar Container */}
-                <div
-                  className={`h-2 w-full overflow-hidden rounded-full p-[2px] ${
-                    theme === "dark" ? "bg-slate-800/50" : "bg-slate-200"
-                  }`}
-                >
-                  <div
-                    style={{ width: `${percentBar}%` }}
-                    className={`h-full rounded-full transition-all duration-1000 ease-out 
-                         ${
-                           isOverBudget
-                             ? "bg-gradient-to-r from-rose-600 to-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.5)]"
-                             : "bg-gradient-to-r from-indigo-500 to-purple-500"
-                         }`}
-                  />
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Insight Section (Dynamic) */}
       {isAnomaly ? (

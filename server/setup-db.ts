@@ -31,6 +31,23 @@ async function setupDatabase() {
     `);
     console.log("✅ Tabel expenses berhasil dibuat");
 
+    // Buat tabel budget
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS budget (
+        id VARCHAR(36) PRIMARY KEY,
+        total_budget INT NOT NULL,
+        pokok_budget INT NOT NULL DEFAULT 0,
+        transport_budget INT NOT NULL DEFAULT 0,
+        gaya_hidup_budget INT NOT NULL DEFAULT 0,
+        kesehatan_budget INT NOT NULL DEFAULT 0,
+        tabungan_budget INT NOT NULL DEFAULT 0,
+        lainnya_budget INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("✅ Tabel budget berhasil dibuat");
+
     console.log("\n✨ Setup database selesai!\n");
   } catch (error) {
     console.error("❌ Error setup database:", error);

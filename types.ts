@@ -30,3 +30,20 @@ export interface ChatMessage {
   role: "user" | "model";
   text: string;
 }
+
+export interface BudgetAllocation {
+  [CategoryType.POKOK]: number;
+  [CategoryType.TRANSPORT]: number;
+  [CategoryType.GAYA_HIDUP]: number;
+  [CategoryType.KESEHATAN]: number;
+  [CategoryType.TABUNGAN]: number;
+  [CategoryType.LAINNYA]: number;
+}
+
+export interface Budget {
+  id: string;
+  total_budget: number;
+  allocations: BudgetAllocation;
+  created_at?: string;
+  updated_at?: string;
+}
