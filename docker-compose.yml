@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: raboros-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-raboros_db}
+      MYSQL_USER: ${DB_USER:-raboros_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-raboros_password}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - raboros-network
+
+  app:
+    build: .
+    container_name: raboros-app
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-raboros_user}
+      DB_PASSWORD: ${DB_PASSWORD:-raboros_password}
+      DB_NAME: ${DB_NAME:-raboros_db}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+      - "${SERVER_PORT:-3001}:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - /app/node_modules
+    networks:
+      - raboros-network
+    command: sh -c "npm run setup-db && npm run server & npx vite preview --host 0.0.0.0 --port 3000"
+
+volumes:
+  mysql_data:
+
+networks:
+  raboros-network:
+    driver: bridge

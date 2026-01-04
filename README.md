@@ -16,10 +16,30 @@ Aplikasi manajemen keuangan berbasis AI untuk tracking pengeluaran, analisis spe
 
 - Node.js v18+
 - npm v9+
-- MySQL 8.0+
+- MySQL 8.0+ (atau Docker)
 - Google Gemini API Key ([dapatkan di sini](https://aistudio.google.com/app/apikey))
 
 ## Quick Install
+
+### Opsi 1: Dengan Docker (Recommended)
+
+Paling simple - cukup clone dan jalankan Docker:
+
+```bash
+git clone <repo-url>
+cd raboros
+cp .env.docker .env.docker
+# Edit .env.docker dan masukkan GEMINI_API_KEY Anda
+docker-compose --env-file .env.docker up --build
+```
+
+Akses aplikasi di http://localhost:3000
+
+**Prerequisites:** Docker dan Docker Compose
+
+### Opsi 2: Local Development
+
+Jalankan di local machine tanpa Docker:
 
 ```bash
 git clone <repo-url>
@@ -31,24 +51,119 @@ npm run setup-db
 npm run dev:all
 ```
 
-Buka http://localhost:3000 di browser.
-
 ## Instalasi Lengkap
 
-### 1. Clone Repository
+### Cara 1: Docker (Recommended untuk Quick Start)
+
+#### Prerequisites
+
+- Docker dan Docker Compose installed
+- Gemini API Key
+
+#### Setup Steps
+
+1. **Clone Repository**
 
 ```bash
 git clone <repository-url>
 cd raboros
 ```
 
-### 2. Install Dependencies
+2. **Persiapan Environment Variables**
+
+```bash
+cp .env.docker .env.docker
+# Edit .env.docker dan masukkan GEMINI_API_KEY Anda
+```
+
+3. **Build dan Run**
+
+```bash
+# Run dengan build
+docker-compose --env-file .env.docker up --build
+
+# Atau run di background
+docker-compose --env-file .env.docker up -d --build
+```
+
+4. **Akses Aplikasi**
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+- MySQL: localhost:3306
+
+#### Docker Environment Variables
+
+Edit `.env.docker` untuk customize:
+
+```env
+# Database Configuration
+DB_HOST=db
+DB_PORT=3306
+DB_USER=raboros_user
+DB_PASSWORD=raboros_password
+DB_NAME=raboros_db
+DB_ROOT_PASSWORD=rootpassword
+
+# API Configuration
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Application
+NODE_ENV=production
+PORT=3001
+```
+
+#### Docker Useful Commands
+
+```bash
+# View logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+
+# Remove everything (including data)
+docker-compose down -v
+
+# Rebuild after code changes
+docker-compose up --build
+
+# Access MySQL
+docker exec -it raboros-mysql mysql -u raboros_user -p raboros_db
+```
+
+#### Docker Troubleshooting
+
+**Port already in use:**
+
+```bash
+APP_PORT=4000 docker-compose up
+```
+
+**Database not initializing:**
+
+```bash
+docker-compose logs db
+```
+
+---
+
+### Cara 2: Local Development Setup
+
+#### 1. Clone Repository
+
+```bash
+git clone <repository-url>
+cd raboros
+```
+
+#### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Setup Database
+#### 3. Setup Database
 
 Pastikan MySQL server sudah running, lalu jalankan:
 
@@ -58,7 +173,7 @@ npm run setup-db
 
 Script ini akan membuat database `raboros_db` dan tabel-tabel yang diperlukan.
 
-### 4. Konfigurasi Environment
+#### 4. Konfigurasi Environment
 
 Copy file template:
 
@@ -79,14 +194,16 @@ PORT=3001
 
 Ganti `your_api_key_here` dengan Google Gemini API Key Anda.
 
-### 5. Jalankan Aplikasi
+#### 5. Jalankan Aplikasi
 
-Opsi 1 - Jalankan bersamaan (recommended):
+Opsi A - Jalankan bersamaan (recommended):
+
 ```bash
 npm run dev:all
 ```
 
-Opsi 2 - Jalankan terpisah:
+Opsi B - Jalankan terpisah:
+
 ```bash
 # Terminal 1 - Backend
 npm run server
@@ -103,6 +220,7 @@ Backend: http://localhost:3001
 ### Input Manual
 
 Ketik deskripsi pengeluaran di text input, contoh:
+
 ```
 "Beli roti 15000 di Indomaret"
 ```
@@ -148,13 +266,13 @@ AI akan otomatis extract item, harga, kategori, dan simpan ke database.
 
 ## Tech Stack
 
-| Komponen | Technology |
-|----------|------------|
+| Komponen | Technology                              |
+| -------- | --------------------------------------- |
 | Frontend | React 19, TypeScript, Vite, TailwindCSS |
-| Backend | Node.js, Express.js v5 |
-| Database | MySQL 8.0 |
-| AI | Google Gemini API |
-| Icons | Lucide React |
+| Backend  | Node.js, Express.js v5                  |
+| Database | MySQL 8.0                               |
+| AI       | Google Gemini API                       |
+| Icons    | Lucide React                            |
 
 ## API Endpoints
 
@@ -216,6 +334,7 @@ kill -9 <PID>
 ### API Quota Habis
 
 Free tier Gemini: 20 requests per hari
+
 - Tunggu 24 jam untuk reset otomatis
 - Atau upgrade ke paid plan
 
