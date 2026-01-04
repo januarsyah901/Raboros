@@ -8,7 +8,7 @@ import {
   MessageCircle,
   X,
   LayoutGrid,
-  Fingerprint,
+  FileText,
   Sun,
   Moon,
   Bird,
@@ -292,7 +292,7 @@ const App: React.FC = () => {
               }`}
               title="Atur Alokasi Strategis"
             >
-              <Fingerprint
+              <FileText
                 size={16}
                 className="group-hover:rotate-12 transition-transform duration-300"
               />

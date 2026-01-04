@@ -35,7 +35,7 @@ export const processInput = async (
   const prompt = `Analisis struk atau teks pembelian berikut sebagai Raboros Intelligence. Ekstrak setiap item, harga, kategori, dan sumbernya.
   
 Gunakan kategori berikut dengan KETAT:
-- 'Kebutuhan Pokok': Makanan pokok, sembako, bahan makanan dasar, kebutuhan sehari-hari
+- 'Kebutuhan Pokok': Makanan pokok, sembako, bahan makanan dasar, kebutuhan sehari-hari, sarapan, makan siang, makan malam, nasi, lauk pauk, sayuran, buah-buahan, susu, telur, roti
 - 'Transportasi & Servis': Bensin, ojek, grab, service kendaraan, parkir, tol
 - 'Gaya Hidup': Kafe, restoran, hiburan, fashion, hobi, lifestyle
 - 'Kesehatan': Obat, dokter, rumah sakit, vitamin, alat kesehatan
@@ -43,6 +43,7 @@ Gunakan kategori berikut dengan KETAT:
 - 'Lainnya': Yang tidak masuk kategori di atas
 
 PENTING: Jika ada kata 'nabung', 'menabung', 'tabungan', 'investasi', 'invest', WAJIB masuk kategori 'Investasi & Tabungan'.
+PENTING: Sarapan, makan siang, makan malam WAJIB masuk kategori 'Kebutuhan Pokok'.
 
 Pastikan konversi harga ke angka integer Rupiah dengan akurat.
 Kembalikan dalam format JSON murni.`;
