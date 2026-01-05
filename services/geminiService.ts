@@ -1,5 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ExpenseItem, CategoryType, ChatMessage } from "../types";
+import { withRetry, isRetryable } from "../utils/retryHandler";
+import { parseError } from "../utils/errorHandler";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -151,29 +153,29 @@ export const processInput = async (
         };
 
   try {
-    const response = await ai.models.generateContent({
-      model,
-      contents,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: EXPENSE_SCHEMA,
-        temperature: 0.1, // Low temperature untuk konsistensi kategorisasi
-      },
-    });
+    const results = await withRetry(
+      async () => {
+        const response = await ai.models.generateContent({
+          model,
+          contents,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: EXPENSE_SCHEMA,
+            temperature: 0.1, // Low temperature untuk konsistensi kategorisasi
+          },
+        });
 
-    const results = JSON.parse(response.text || "[]");
+        return JSON.parse(response.text || "[]");
+      },
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        timeout: 30000,
+      }
+    );
 
     // Validasi dan enrichment
     return results.map((res: any) => {
-      // Validasi kategori
-      // const validCategories: CategoryType[] = [
-      //   "Kebutuhan Pokok",
-      //   "Transportasi & Servis",
-      //   "Gaya Hidup",
-      //   "Kesehatan",
-      //   "Investasi & Tabungan",
-      //   "Lainnya"
-      // ];
       const validCategories: CategoryType[] = [
         CategoryType.POKOK,
         CategoryType.TRANSPORT,
@@ -199,35 +201,13 @@ export const processInput = async (
   } catch (error) {
     console.error("❌ Raboros Engine Error:", error);
 
-    // Extract error details from the error object
-    let errorMessage =
-      "Raboros Intelligence mengalami gangguan. Mohon coba lagi atau hubungi support.";
-
-    if (error instanceof Error) {
-      const errorStr = error.message || error.toString();
-
-      // Check for specific error codes in the error message
-      if (errorStr.includes("429") || errorStr.includes("RESOURCE_EXHAUSTED")) {
-        errorMessage = "QUOTA_EXHAUSTED: " + errorStr;
-      } else if (
-        errorStr.includes("401") ||
-        errorStr.includes("UNAUTHENTICATED")
-      ) {
-        errorMessage = "AUTH_ERROR: " + errorStr;
-      } else {
-        errorMessage = errorStr;
-      }
-    } else if (typeof error === "object" && error !== null) {
-      // Try to extract error message from object
-      const errorObj = error as any;
-      if (errorObj.message) {
-        errorMessage = errorObj.message;
-      } else if (errorObj.error?.message) {
-        errorMessage = errorObj.error.message;
-      }
-    }
-
-    throw new Error(errorMessage);
+    // Parse error untuk user-friendly message
+    const parsedError = parseError(error);
+    throw new Error(
+      `${parsedError.title}: ${parsedError.message}${
+        parsedError.details ? `\n\n${parsedError.details}` : ""
+      }`
+    );
   }
 };
 
@@ -323,16 +303,25 @@ CONTOH GAYA RESPONS:
 ${context}`;
 
   try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: query,
-      config: {
-        systemInstruction,
-        temperature: 0.7,
-        thinkingConfig: { thinkingBudget: 0 },
-        maxOutputTokens: 1024,
+    const response = await withRetry(
+      async () => {
+        return await ai.models.generateContent({
+          model,
+          contents: query,
+          config: {
+            systemInstruction,
+            temperature: 0.7,
+            thinkingConfig: { thinkingBudget: 0 },
+            maxOutputTokens: 1024,
+          },
+        });
       },
-    });
+      {
+        maxRetries: 2,
+        initialDelay: 1000,
+        timeout: 30000,
+      }
+    );
 
     return (
       response.text ||
@@ -340,7 +329,14 @@ ${context}`;
     );
   } catch (error) {
     console.error("❌ Raboros Advisor Error:", error);
-    return "Terjadi anomali pada neural network Raboros. Mohon coba lagi dalam beberapa saat atau reformulasi pertanyaan Anda.";
+
+    // Parse error untuk user-friendly message
+    const parsedError = parseError(error);
+    throw new Error(
+      `${parsedError.title}: ${parsedError.message}${
+        parsedError.details ? `\n\n${parsedError.details}` : ""
+      }`
+    );
   }
 };
 
@@ -360,7 +356,17 @@ export const generateMonthlyReport = async (
   4. Rekomendasi optimisasi budget untuk bulan depan
   5. Financial health score (0-100)`;
 
-  return askAdvisor(query, monthlyExpenses);
+  try {
+    return await askAdvisor(query, monthlyExpenses);
+  } catch (error) {
+    console.error("❌ Monthly Report Generation Error:", error);
+    const parsedError = parseError(error);
+    throw new Error(
+      `${parsedError.title}: ${parsedError.message}${
+        parsedError.details ? `\n\n${parsedError.details}` : ""
+      }`
+    );
+  }
 };
 
 /**
@@ -387,5 +393,15 @@ export const compareBudget = async (
 
   const query = `Analisis perbandingan budget vs aktual berikut:\n\n${comparison}\n\nBerikan insight & action plan.`;
 
-  return askAdvisor(query, expenses);
+  try {
+    return await askAdvisor(query, expenses);
+  } catch (error) {
+    console.error("❌ Budget Comparison Error:", error);
+    const parsedError = parseError(error);
+    throw new Error(
+      `${parsedError.title}: ${parsedError.message}${
+        parsedError.details ? `\n\n${parsedError.details}` : ""
+      }`
+    );
+  }
 };

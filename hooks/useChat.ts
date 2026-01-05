@@ -1,11 +1,24 @@
 import { useState } from "react";
 import { ChatMessage, ExpenseItem } from "../types";
 import { askAdvisor } from "../services/geminiService";
+import { parseError } from "../utils/errorHandler";
+
+export interface ChatError {
+  title: string;
+  message: string;
+  details?: string;
+  userAction?: string;
+  isQuotaError: boolean;
+  isAuthError: boolean;
+  isServerError: boolean;
+  isNetworkError: boolean;
+  isTimeoutError: boolean;
+}
 
 export const useChat = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ChatError | null>(null);
 
   // Send message to advisor
   const sendMessage = async (message: string, expenses: ExpenseItem[]) => {
@@ -24,8 +37,9 @@ export const useChat = () => {
 
       return true;
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Unknown error";
-      setError(errorMsg);
+      // Parse error to get detailed error info
+      const parsedError = parseError(err);
+      setError(parsedError as ChatError);
       console.error("Error sending message:", err);
       return false;
     } finally {

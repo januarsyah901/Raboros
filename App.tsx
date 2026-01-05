@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Sparkles, X, Receipt, AlertCircle } from "lucide-react";
 import { ExpenseItem, ChatMessage } from "./types";
 import { processInput } from "./services/geminiService";
@@ -6,6 +6,7 @@ import { ExpenseDashboard } from "./components/ExpenseDashboard";
 import { ExpenseList } from "./components/ExpenseList";
 import { BudgetAllocationModal } from "./components/BudgetAllocationModal";
 import { ConfirmModal } from "./components/ConfirmModal";
+import { ErrorNotification } from "./components/ErrorNotification";
 import {
   Header,
   MainContent,
@@ -20,7 +21,8 @@ import {
   useModals,
   useProcessInput,
 } from "./hooks";
-import { parseError } from "./utils/errorHandler";
+import type { ProcessError } from "./hooks/useProcessInput";
+import type { ChatError } from "./hooks/useChat";
 
 const App: React.FC = () => {
   const { theme } = useTheme();
@@ -29,8 +31,20 @@ const App: React.FC = () => {
   const { expenses, saveExpenses, deleteExpense, deleteAllExpenses } =
     useExpenses();
   const { budget, saveBudget } = useBudget();
-  const { chatHistory, sendMessage, clearChat } = useChat();
-  const { handleProcess } = useProcessInput();
+  const {
+    chatHistory,
+    sendMessage,
+    clearChat,
+    error: chatError,
+    resetError: resetChatError,
+  } = useChat();
+  const {
+    isProcessing: isProcessingInput,
+    error: processError,
+    handleProcess,
+    resetError: resetProcessError,
+    retry: retryProcess,
+  } = useProcessInput();
   const {
     showBudgetModal,
     openBudgetModal,
@@ -44,9 +58,12 @@ const App: React.FC = () => {
   } = useModals();
 
   // Local state
-  const [isChatMode, setIsChatMode] = React.useState(false);
-  const [inputText, setInputText] = React.useState("");
-  const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isChatMode, setIsChatMode] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [lastInputData, setLastInputData] = useState<
+    string | { data: string; mimeType: string } | null
+  >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -102,16 +119,14 @@ const App: React.FC = () => {
     input: string | { data: string; mimeType: string }
   ) => {
     setIsProcessing(true);
+    setLastInputData(input);
     try {
       const newItems = await handleProcess(input);
-      if (newItems) {
+      if (newItems && newItems.length > 0) {
         await saveExpenses(newItems);
         setInputText("");
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
-    } catch (error) {
-      const parsed = parseError(error);
-      openErrorModal(parsed.title, parsed.message, parsed.details);
     } finally {
       setIsProcessing(false);
     }
@@ -128,18 +143,10 @@ const App: React.FC = () => {
         const success = await sendMessage(inputText, expenses);
         if (success) {
           setInputText("");
-        } else {
-          openErrorModal(
-            "Gagal Mengirim Pesan",
-            "Terjadi kesalahan saat menghubungi AI advisor."
-          );
         }
       } else {
         await processImageInput(inputText);
       }
-    } catch (error) {
-      const parsed = parseError(error);
-      openErrorModal(parsed.title, parsed.message, parsed.details);
     } finally {
       setIsProcessing(false);
     }
@@ -319,6 +326,31 @@ const App: React.FC = () => {
         onModeToggle={() => setIsChatMode(!isChatMode)}
         onFileSelect={handleFileChange}
       />
+
+      {/* Error Notifications */}
+      {processError && (
+        <ErrorNotification
+          {...processError}
+          onRetry={async () => {
+            if (lastInputData) {
+              await retryProcess(lastInputData);
+            }
+          }}
+          onDismiss={resetProcessError}
+        />
+      )}
+
+      {chatError && (
+        <ErrorNotification
+          {...chatError}
+          onRetry={async () => {
+            if (inputText.trim()) {
+              await sendMessage(inputText, expenses);
+            }
+          }}
+          onDismiss={resetChatError}
+        />
+      )}
 
       {/* Modals */}
       <BudgetAllocationModal
