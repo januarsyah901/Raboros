@@ -65,7 +65,7 @@ npm run dev:all
 1. **Clone Repository**
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/januarsyah901/Raboros.git
 cd raboros
 ```
 
@@ -153,7 +153,7 @@ docker-compose logs db
 #### 1. Clone Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/januarsyah901/Raboros.git
 cd raboros
 ```
 
