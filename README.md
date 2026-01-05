@@ -26,7 +26,7 @@ Aplikasi manajemen keuangan berbasis AI untuk tracking pengeluaran, analisis spe
 Paling simple - cukup clone dan jalankan Docker:
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/januarsyah901/Raboros.git
 cd raboros
 cp .env.docker .env.docker
 # Edit .env.docker dan masukkan GEMINI_API_KEY Anda
