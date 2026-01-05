@@ -8,9 +8,5 @@ interface MainContentProps {
 export const MainContent: React.FC<MainContentProps> = ({ children }) => {
   const { theme } = useTheme();
 
-  return (
-    <main className="p-8 space-y-10">
-      {children}
-    </main>
-  );
+  return <main className="p-8 space-y-10">{children}</main>;
 };

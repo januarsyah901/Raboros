@@ -52,8 +52,7 @@ export const SPACING = {
 // Button variants
 export const BUTTON_VARIANTS = {
   primary: "bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95",
-  secondary:
-    "bg-slate-200 text-slate-900 hover:bg-slate-300 active:scale-95",
+  secondary: "bg-slate-200 text-slate-900 hover:bg-slate-300 active:scale-95",
   danger: "bg-rose-500 text-white hover:bg-rose-600 active:scale-95",
   ghost:
     "bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95",
@@ -63,8 +62,7 @@ export const BUTTON_VARIANTS = {
 export const MODAL_CLASSES = {
   backdrop: "fixed inset-0 z-50 flex items-center justify-center p-4",
   overlay: "absolute inset-0 bg-black/50 backdrop-blur-sm",
-  content:
-    "relative z-10 w-full max-w-sm rounded-[2rem] border p-6 shadow-2xl",
+  content: "relative z-10 w-full max-w-sm rounded-[2rem] border p-6 shadow-2xl",
 };
 
 // Header classes

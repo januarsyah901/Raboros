@@ -34,11 +34,7 @@ export const useModals = () => {
   const closeBudgetModal = () => setShowBudgetModal(false);
 
   // Error Modal handlers
-  const openErrorModal = (
-    title: string,
-    message: string,
-    details?: string
-  ) => {
+  const openErrorModal = (title: string, message: string, details?: string) => {
     setErrorModal({
       isOpen: true,
       title,

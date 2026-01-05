@@ -1,10 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import {
-  Sparkles,
-  X,
-  Receipt,
-  AlertCircle,
-} from "lucide-react";
+import { Sparkles, X, Receipt, AlertCircle } from "lucide-react";
 import { ExpenseItem, ChatMessage } from "./types";
 import { processInput } from "./services/geminiService";
 import { ExpenseDashboard } from "./components/ExpenseDashboard";
@@ -29,7 +24,7 @@ import { parseError } from "./utils/errorHandler";
 
 const App: React.FC = () => {
   const { theme } = useTheme();
-  
+
   // Custom hooks
   const { expenses, saveExpenses, deleteExpense, deleteAllExpenses } =
     useExpenses();
@@ -90,9 +85,7 @@ const App: React.FC = () => {
   }, [isChatMode, isProcessing]);
 
   // Handle budget submission
-  const handleBudgetSubmit = async (
-    allocations: Record<string, number>
-  ) => {
+  const handleBudgetSubmit = async (allocations: Record<string, number>) => {
     const success = await saveBudget(allocations as any);
     if (success) {
       closeBudgetModal();
@@ -193,10 +186,7 @@ const App: React.FC = () => {
   return (
     <BackgroundPattern>
       {/* Header */}
-      <Header
-        onBudgetClick={openBudgetModal}
-        onResetClick={handleResetAll}
-      />
+      <Header onBudgetClick={openBudgetModal} onResetClick={handleResetAll} />
 
       {/* Main Content */}
       <MainContent>
@@ -351,7 +341,9 @@ const App: React.FC = () => {
 
       {/* Error Modal */}
       {errorModal.isOpen && (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4`}>
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4`}
+        >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"

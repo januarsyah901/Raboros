@@ -32,9 +32,7 @@ export const parseError = (error: unknown): ParsedError => {
     errorStr.includes("QUOTA_EXHAUSTED")
   ) {
     const retryMatch = errorStr.match(/Please retry in ([\d.]+)s/);
-    const retryTime = retryMatch
-      ? Math.ceil(parseFloat(retryMatch[1]))
-      : null;
+    const retryTime = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) : null;
 
     return {
       title: "⚠️ Quota API Terlampaui",

@@ -111,7 +111,10 @@ export const InputNav: React.FC<InputNavProps> = ({
           />
 
           {/* Input Form */}
-          <form onSubmit={onSubmit} className="flex-1 flex items-center bg-transparent">
+          <form
+            onSubmit={onSubmit}
+            className="flex-1 flex items-center bg-transparent"
+          >
             <input
               type="text"
               placeholder={
