@@ -42,7 +42,7 @@ Akses aplikasi di http://localhost:3000
 Jalankan di local machine tanpa Docker:
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/januarsyah901/Raboros.git
 cd raboros
 npm install
 cp .env.example .env
