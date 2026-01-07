@@ -1,8 +1,19 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { ArrowRight, Loader2, AlertCircle, X, Calculator, PieChart } from "lucide-react";
+import {
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  X,
+  Calculator,
+  PieChart,
+} from "lucide-react";
 import { CategoryType, Budget } from "../types";
 import { CATEGORIES } from "../constants";
 import { useTheme } from "../contexts/ThemeContext";
+import {
+  validatePrice,
+  validateBudgetAllocation,
+} from "../utils/priceValidator";
 
 interface BudgetAllocationModalProps {
   isOpen: boolean;
@@ -53,14 +64,25 @@ export const BudgetAllocationModal: React.FC<BudgetAllocationModalProps> = ({
   }, [isOpen, initialBudget]);
 
   const totalBudget = useMemo(
-    () => Object.values(allocations).reduce((sum: number, val: number) => sum + val, 0),
+    () =>
+      Object.values(allocations).reduce(
+        (sum: number, val: number) => sum + val,
+        0
+      ),
     [allocations]
   );
 
   const handleInputChange = (category: CategoryType, inputValue: string) => {
     // Hapus semua karakter non-digit untuk mendapatkan raw number
-    const numericValue = parseInt(inputValue.replace(/\D/g, "")) || 0;
-    
+    let numericValue = parseInt(inputValue.replace(/\D/g, "")) || 0;
+
+    // Validasi harga
+    const validation = validatePrice(numericValue);
+    if (!validation.isValid && numericValue > 0) {
+      // Jika tidak valid (bisa negatif atau invalid), set ke 0
+      numericValue = 0;
+    }
+
     setAllocations((prev) => ({
       ...prev,
       [category]: numericValue,
@@ -71,8 +93,16 @@ export const BudgetAllocationModal: React.FC<BudgetAllocationModalProps> = ({
     e.preventDefault();
     setError("");
 
+    // Validasi total budget
     if (totalBudget === 0) {
       setError("Total alokasi harus lebih dari 0");
+      return;
+    }
+
+    // Validasi setiap kategori tidak boleh negatif
+    const budgetValidation = validateBudgetAllocation(allocations);
+    if (!budgetValidation.isValid) {
+      setError(budgetValidation.error || "Alokasi budget tidak valid");
       return;
     }
 
@@ -92,8 +122,8 @@ export const BudgetAllocationModal: React.FC<BudgetAllocationModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop dengan Blur */}
-      <div 
-        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+      <div
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
@@ -105,16 +135,34 @@ export const BudgetAllocationModal: React.FC<BudgetAllocationModalProps> = ({
         }`}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between border-b px-6 py-5 ${
-           theme === "dark" ? "border-slate-800 bg-slate-900" : "border-slate-100 bg-white"
-        }`}>
+        <div
+          className={`flex items-center justify-between border-b px-6 py-5 ${
+            theme === "dark"
+              ? "border-slate-800 bg-slate-900"
+              : "border-slate-100 bg-white"
+          }`}
+        >
           <div className="flex items-center gap-3">
-            <div className={`rounded-xl p-2.5 ${theme === "dark" ? "bg-slate-800" : "bg-blue-50"}`}>
-              <PieChart className={`h-6 w-6 ${theme === "dark" ? "text-blue-400" : "text-blue-600"}`} />
+            <div
+              className={`rounded-xl p-2.5 ${
+                theme === "dark" ? "bg-slate-800" : "bg-blue-50"
+              }`}
+            >
+              <PieChart
+                className={`h-6 w-6 ${
+                  theme === "dark" ? "text-blue-400" : "text-blue-600"
+                }`}
+              />
             </div>
             <div>
-              <h2 className="text-xl font-bold tracking-tight">Alokasi Strategis</h2>
-              <p className={`text-xs font-medium ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`}>
+              <h2 className="text-xl font-bold tracking-tight">
+                Alokasi Strategis
+              </h2>
+              <p
+                className={`text-xs font-medium ${
+                  theme === "dark" ? "text-slate-400" : "text-slate-500"
+                }`}
+              >
                 Atur distribusi keuangan bulanan Anda
               </p>
             </div>
@@ -122,7 +170,7 @@ export const BudgetAllocationModal: React.FC<BudgetAllocationModalProps> = ({
           <button
             onClick={onClose}
             className={`rounded-full p-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${
-               theme === "dark" ? "text-slate-400" : "text-slate-500"
+              theme === "dark" ? "text-slate-400" : "text-slate-500"
             }`}
           >
             <X size={20} />
@@ -143,52 +191,70 @@ export const BudgetAllocationModal: React.FC<BudgetAllocationModalProps> = ({
               {(Object.keys(CATEGORIES) as CategoryType[]).map((category) => {
                 const metadata = CATEGORIES[category];
                 const value = allocations[category];
-                const percentage = totalBudget > 0 ? (value / totalBudget) * 100 : 0;
+                const percentage =
+                  totalBudget > 0 ? (value / totalBudget) * 100 : 0;
 
                 return (
-                  <div key={category} className={`group rounded-2xl border p-4 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500/20 ${
-                    theme === "dark" 
-                      ? "border-slate-800 bg-slate-950/50 hover:border-slate-700" 
-                      : "border-slate-100 bg-slate-50/50 hover:border-slate-300"
-                  }`}>
+                  <div
+                    key={category}
+                    className={`group rounded-2xl border p-4 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500/20 ${
+                      theme === "dark"
+                        ? "border-slate-800 bg-slate-950/50 hover:border-slate-700"
+                        : "border-slate-100 bg-slate-50/50 hover:border-slate-300"
+                    }`}
+                  >
                     <label className="mb-3 flex items-center gap-3">
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg shadow-sm ${metadata.color}`}>
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg shadow-sm ${metadata.color}`}
+                      >
                         {metadata.icon}
                       </div>
-                      <span className="font-bold text-sm uppercase tracking-wide opacity-80">{category}</span>
+                      <span className="font-bold text-sm uppercase tracking-wide opacity-80">
+                        {category}
+                      </span>
                     </label>
 
                     <div className="relative">
-                      <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${
-                        theme === "dark" ? "text-slate-500" : "text-slate-400"
-                      }`}>
+                      <span
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${
+                          theme === "dark" ? "text-slate-500" : "text-slate-400"
+                        }`}
+                      >
                         Rp
                       </span>
                       <input
                         type="text"
                         inputMode="numeric"
                         value={value === 0 ? "" : formatNumberInputValue(value)}
-                        onChange={(e) => handleInputChange(category, e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(category, e.target.value)
+                        }
                         placeholder="0"
                         disabled={isLoading}
                         className={`w-full rounded-xl border-none bg-transparent py-2 pl-9 pr-14 text-lg font-bold tabular-nums outline-none transition-all placeholder:text-slate-300 focus:ring-0 ${
                           theme === "dark" ? "text-white" : "text-slate-900"
                         }`}
                       />
-                      <div className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-2 py-0.5 text-xs font-bold ${
-                         theme === "dark" ? "bg-slate-800 text-slate-300" : "bg-white text-slate-600 shadow-sm"
-                      }`}>
+                      <div
+                        className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-2 py-0.5 text-xs font-bold ${
+                          theme === "dark"
+                            ? "bg-slate-800 text-slate-300"
+                            : "bg-white text-slate-600 shadow-sm"
+                        }`}
+                      >
                         {percentage.toFixed(0)}%
                       </div>
                     </div>
-                    
+
                     {/* Visual Bar inside card */}
-                    <div className={`mt-2 h-1 w-full overflow-hidden rounded-full ${
-                      theme === "dark" ? "bg-slate-800" : "bg-slate-200"
-                    }`}>
-                      <div 
+                    <div
+                      className={`mt-2 h-1 w-full overflow-hidden rounded-full ${
+                        theme === "dark" ? "bg-slate-800" : "bg-slate-200"
+                      }`}
+                    >
+                      <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                           percentage > 40 ? "bg-blue-500" : "bg-slate-400"
+                          percentage > 40 ? "bg-blue-500" : "bg-slate-400"
                         }`}
                         style={{ width: `${Math.min(percentage, 100)}%` }}
                       />
@@ -201,28 +267,40 @@ export const BudgetAllocationModal: React.FC<BudgetAllocationModalProps> = ({
         </div>
 
         {/* Sticky Footer */}
-        <div className={`border-t p-6 ${
-          theme === "dark" ? "border-slate-800 bg-slate-900" : "border-slate-100 bg-white"
-        }`}>
+        <div
+          className={`border-t p-6 ${
+            theme === "dark"
+              ? "border-slate-800 bg-slate-900"
+              : "border-slate-100 bg-white"
+          }`}
+        >
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-               <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-                 theme === "dark" ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-500"
-               }`}>
-                 <Calculator size={24} />
-               </div>
-               <div>
-                 <p className={`text-xs font-semibold uppercase tracking-wider ${
-                   theme === "dark" ? "text-slate-500" : "text-slate-400"
-                 }`}>
-                   Total Alokasi
-                 </p>
-                 <p className={`text-2xl font-black tracking-tight tabular-nums ${
-                   theme === "dark" ? "text-white" : "text-slate-900"
-                 }`}>
-                   {formatRupiah(totalBudget)}
-                 </p>
-               </div>
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+                  theme === "dark"
+                    ? "bg-slate-800 text-slate-400"
+                    : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                <Calculator size={24} />
+              </div>
+              <div>
+                <p
+                  className={`text-xs font-semibold uppercase tracking-wider ${
+                    theme === "dark" ? "text-slate-500" : "text-slate-400"
+                  }`}
+                >
+                  Total Alokasi
+                </p>
+                <p
+                  className={`text-2xl font-black tracking-tight tabular-nums ${
+                    theme === "dark" ? "text-white" : "text-slate-900"
+                  }`}
+                >
+                  {formatRupiah(totalBudget)}
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-3">
@@ -243,8 +321,8 @@ export const BudgetAllocationModal: React.FC<BudgetAllocationModalProps> = ({
                 form="budget-form"
                 disabled={isLoading || totalBudget === 0}
                 className={`flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] hover:shadow-blue-500/40 active:scale-[0.98] ${
-                   isLoading || totalBudget === 0 
-                    ? "cursor-not-allowed bg-slate-400 opacity-50 shadow-none" 
+                  isLoading || totalBudget === 0
+                    ? "cursor-not-allowed bg-slate-400 opacity-50 shadow-none"
                     : "bg-blue-600 hover:bg-blue-500"
                 }`}
               >

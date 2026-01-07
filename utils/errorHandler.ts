@@ -43,6 +43,55 @@ const extractErrorMessage = (error: unknown): string => {
 export const parseError = (error: unknown): ParsedError => {
   const errorStr = extractErrorMessage(error);
 
+  // PRICE VALIDATION ERRORS
+  if (
+    errorStr.includes("Harga harus") ||
+    errorStr.includes("Price must") ||
+    errorStr.includes("Invalid price") ||
+    (errorStr.includes("harga") &&
+      (errorStr.includes("negatif") ||
+        errorStr.includes("negative") ||
+        errorStr.includes("lebih dari 0") ||
+        errorStr.includes("greater than 0") ||
+        errorStr.includes("bulat") ||
+        errorStr.includes("integer")))
+  ) {
+    return {
+      title: "💰 Input Harga Tidak Valid",
+      message: errorStr || "Harga yang Anda masukkan tidak valid.",
+      details:
+        "Syarat harga yang valid:\n1. Harus berupa angka positif (lebih dari 0)\n2. Tidak boleh negatif\n3. Harus berupa angka bulat\n4. Maksimal Rp 1 miliar\n\nContoh format valid:\n- 25000\n- 25.000\n- Rp 25.000\n- 25k (akan dikonversi menjadi 25.000)",
+      isQuotaError: false,
+      isAuthError: false,
+      isServerError: false,
+      isNetworkError: false,
+      isTimeoutError: false,
+      userAction: "Perbaiki input",
+    };
+  }
+
+  // BUDGET ALLOCATION ERRORS
+  if (errorStr.includes("alokasi") || errorStr.includes("budget")) {
+    if (
+      errorStr.includes("lebih dari 0") ||
+      errorStr.includes("negatif") ||
+      errorStr.includes("greater than 0")
+    ) {
+      return {
+        title: "📊 Alokasi Budget Tidak Valid",
+        message: errorStr || "Alokasi budget yang Anda masukkan tidak valid.",
+        details:
+          "Syarat alokasi budget yang valid:\n1. Total alokasi harus lebih dari 0\n2. Setiap kategori tidak boleh negatif\n3. Gunakan angka bulat saja\n\nTips:\n- Pastikan minimal satu kategori memiliki nilai\n- Jangan gunakan nilai negatif\n- Cek kembali setiap input sebelum menyimpan",
+        isQuotaError: false,
+        isAuthError: false,
+        isServerError: false,
+        isNetworkError: false,
+        isTimeoutError: false,
+        userAction: "Perbaiki alokasi",
+      };
+    }
+  }
+
   // TIMEOUT ERRORS
   if (errorStr.includes("timeout") || errorStr.includes("timed out")) {
     return {

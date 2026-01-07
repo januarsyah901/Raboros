@@ -2,6 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { ExpenseItem, CategoryType, ChatMessage } from "../types";
 import { withRetry, isRetryable } from "../utils/retryHandler";
 import { parseError } from "../utils/errorHandler";
+import { validatePrice } from "../utils/priceValidator";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -175,29 +176,40 @@ export const processInput = async (
     );
 
     // Validasi dan enrichment
-    return results.map((res: any) => {
-      const validCategories: CategoryType[] = [
-        CategoryType.POKOK,
-        CategoryType.TRANSPORT,
-        CategoryType.GAYA_HIDUP,
-        CategoryType.KESEHATAN,
-        CategoryType.TABUNGAN,
-        CategoryType.LAINNYA,
-      ];
+    return results
+      .map((res: any) => {
+        // Validasi harga
+        const priceValidation = validatePrice(res.price);
+        if (!priceValidation.isValid) {
+          console.warn(
+            `⚠️ Invalid price for "${res.item}": ${res.price} - ${priceValidation.error}`
+          );
+          return null; // Skip invalid entries
+        }
 
-      const category = validCategories.includes(res.category)
-        ? res.category
-        : "Lainnya";
+        const validCategories: CategoryType[] = [
+          CategoryType.POKOK,
+          CategoryType.TRANSPORT,
+          CategoryType.GAYA_HIDUP,
+          CategoryType.KESEHATAN,
+          CategoryType.TABUNGAN,
+          CategoryType.LAINNYA,
+        ];
 
-      return {
-        id: Math.random().toString(36).substring(2, 9),
-        date: new Date().toISOString(),
-        item: res.item,
-        price: Math.round(res.price), // Ensure integer
-        category: category as CategoryType,
-        source: res.source || "Tidak Diketahui",
-      };
-    });
+        const category = validCategories.includes(res.category)
+          ? res.category
+          : CategoryType.LAINNYA;
+
+        return {
+          id: Math.random().toString(36).substring(2, 9),
+          date: new Date().toISOString(),
+          item: res.item || "Tidak Diketahui",
+          price: Math.round(priceValidation.value!), // Validated price
+          category: category as CategoryType,
+          source: res.source || "Tidak Diketahui",
+        };
+      })
+      .filter((item) => item !== null) as ExpenseItem[];
   } catch (error) {
     console.error("❌ Raboros Engine Error:", error);
 
