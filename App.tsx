@@ -362,7 +362,7 @@ const App: React.FC = () => {
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        title={confirmModal.title}
+        title={confirmModal.title}                    
         message={confirmModal.message}
         confirmText={confirmModal.isDangerous ? "Hapus Semua" : "Hapus"}
         cancelText="Batal"
